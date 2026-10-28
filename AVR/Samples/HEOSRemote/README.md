@@ -6,7 +6,7 @@ The original application currently uses its own `HEOSTransport.pas` and `Heos.pa
 
 ## Build
 
-This application requires MfPack's `src` folder as well as Delphi XE7. Its custom `TDn` controls are included under `Controls`. For form editing, install the included `Controls/HEOSControls.dproj` package in the Win32 Delphi IDE if these classes are not installed already.
+This application requires MfPack's `src` folder as well as Delphi XE7 or higher up to 13.1. Its custom `TDn` controls are included under `Controls`. For form editing, install the included `Controls/HEOSControls.dproj` package in the Win32 Delphi IDE if these classes are not installed already.
 
 ```powershell
 .\Build.ps1 -MfPackRoot 'D:\PROJECTS\MfPack' -Platform Win32
