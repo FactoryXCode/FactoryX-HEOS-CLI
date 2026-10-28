@@ -27,3 +27,6 @@ Thumbs.db
 Desktop.ini
 .vs/
 .vscode/
+
+# Generated VCL sample project resource
+/Examples/MfHeosRemote/MfHeosRemote.res

@@ -38,9 +38,9 @@ foreach ($target in $Platform) {
 
     $outputPath = Join-Path $repositoryRoot ('Build\' + $target)
     New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
-    $sourcePath = Join-Path $repositoryRoot 'Source'
+    $sourcePath = (Join-Path $repositoryRoot 'Source') + ';' + (Join-Path $repositoryRoot 'AVR\Source')
 
-    foreach ($project in @('Examples\HeosCliDemo.dpr', 'Tests\HeosApiTests.dpr')) {
+    foreach ($project in @('Examples\HeosCliDemo.dpr', 'Examples\MfHeosRemote\MfHeosRemote.dpr', 'AVR\Samples\AvrCliDemo.dpr', 'AVR\Tests\AvrApiTests.dpr', 'Tests\HeosApiTests.dpr')) {
         $projectPath = Join-Path $repositoryRoot $project
         Write-Host "Building $project ($target)"
         Push-Location (Split-Path -Parent $projectPath)
@@ -60,6 +60,10 @@ foreach ($target in $Platform) {
         & (Join-Path $outputPath 'HeosApiTests.exe')
         if ($LASTEXITCODE -ne 0) {
             throw "HEOS simulator tests failed ($target)."
+        }
+        & (Join-Path $outputPath 'AvrApiTests.exe')
+        if ($LASTEXITCODE -ne 0) {
+            throw "AVR command tests failed ($target)."
         }
     }
 }
