@@ -1,6 +1,8 @@
 ﻿# HEOS Remote AVR sample
 
-This is the complete Delphi XE7 VCL HEOS Remote application, including its DFM forms, custom controls, playlist editor, RDJ-derived library support, native audio streaming and AVR control code. It is copied from the working application; the original project is unchanged. Receiver databases, INI files, credentials, compiled output and local IDE settings are not included.
+Minimum suported Delphi version: XE7.
+
+This is the complete Delphi VCL HEOS Remote application, including its DFM forms, custom controls, playlist editor, RDJ-derived library support, native audio streaming and AVR control code. It is copied from the working application; the original project is unchanged. Receiver databases, INI files, credentials, compiled output and local IDE settings are not included.
 
 The original application currently uses its own `HEOSTransport.pas` and `Heos.pas` adapters. The reusable APIs are in `AVR/Source` and the repository's top-level `Source`; this source snapshot has not been silently migrated to them. `AVR/Samples/AvrCliDemo.dpr` demonstrates the new AVR API directly.
 
