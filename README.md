@@ -20,9 +20,9 @@ Supported products are:
 # Supported Delphi versions
   
 Delphi XE7 up to and including Delphi 13.1
-The Delphi HEOS CLI API use the native Windows sockets; no Indy or third-party JSON library are needed.
+The Delphi HEOS CLI API use the native Windows sockets; no Indy or third-party JSON libraries are needed.
   
-# Windows versions
+# Suported Windows versions
 Windows 10 22H2 onwards. 
   
 The command layer covers **all 57 command paths in the official published HEOS CLI specification 1.17**, with 63 typed builders, including convenience builders for playlists, history and favorites.
