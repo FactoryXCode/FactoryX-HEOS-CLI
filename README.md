@@ -46,4 +46,4 @@ See the [application build instructions](AVR/Samples/HEOSRemote/README.md).
 
 ---
 
-**(c) FactoryX. All rights reserved.**
+**(c) FactoryX. All rights reserved. **
