@@ -1,33 +1,25 @@
 ﻿# HEOS Remote AVR sample
 
-Minimum suported Delphi version: XE7.
-
-This is the complete Delphi VCL HEOS Remote application, including its DFM forms, custom controls, playlist editor, RDJ-derived library support, native audio streaming and AVR control code. 
-It is copied from the working application; the original project is unchanged. 
-Receiver databases, INI files, credentials, compiled output and local IDE settings are not included.
-
-The original application currently uses its own `HEOSTransport.pas` and `Heos.pas` adapters. The reusable APIs are in `AVR/Source` and the repository's top-level `Source`; this source snapshot has not been silently migrated to them. `AVR/Samples/AvrCliDemo.dpr` demonstrates the new AVR API directly.
-
-The API-based copy is available in [Examples/HEOSRemoteApi](../../../Examples/HEOSRemoteApi/README.md), using `THeosClient` and `TAvrClient`.
-
+Minimum suported Delphi version: XE7.  
+  
+This is the complete Delphi VCL HEOS Remote application, including playlist editor, RDJ-derived library support, native audio streaming and AVR control code. 
+  
+The API-based copy is available in [Examples/HEOSRemoteApi](../../../Examples/HEOSRemoteApi/README.md), using `THeosClient` and `TAvrClient`.  
+  
 ## Build
-
-This application requires MfPack's `src` folder as well as Delphi XE7 or higher up to 13.1. 
-Its custom `TDn` controls are included under `Controls`. 
-For form editing, install the included `Controls/HEOSControls.dproj` package in the Win32 Delphi IDE if these classes are not installed already.
-
-```powershell
-.\Build.ps1 -MfPackRoot 'D:\PROJECTS\MfPack' -Platform Win32
-.\Build.ps1 -MfPackRoot 'D:\PROJECTS\MfPack' -Platform Win64
-```
-
+  
+This application requires MfPack's `src` folder and Delphi XE7 or higher up to 13.1 to compile.  
+Its custom `TDn` controls are included under `Controls`.  
+  
 For IDE builds, set the `MfPackRoot` environment variable before starting Delphi, or set that MSBuild property when invoking `HEOSRemote.dproj`. 
-Its search path uses `Controls` and `$(MfPackRoot)\src` and contains no machine-specific project paths.
+Its search path uses `Controls` and `..\MfPack\src`. No machine-specific project paths are needed.
 
 The application's longer development notes are preserved in `APP-NOTES.md` and `RDJ-SOURCE-NOTES.md`. 
 Main Zone and Zone 2, tone controls and channel levels use the AVR protocol; HEOS playback uses its separate CLI. 
-Availability depends on the receiver's settings and firmware. 
-No receiver is contacted by building the project.
+Please note that availability depends on the receiver's settings and firmware versions. 
+
+**Test environment**  
+A Denon AVR-X2700H DAB receiver has been used for building and testing the project.
 
 Project: FactoryX - HEOS CLI  
 Project location: FactoryXCode  
