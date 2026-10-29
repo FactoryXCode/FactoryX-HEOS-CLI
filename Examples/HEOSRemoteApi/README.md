@@ -17,12 +17,13 @@ These functions are separate from the HEOS and AVR control APIs.
 
 ## Open and build
 
-Requires Delphi XE7 or later, Windows 10 and later, and [MfPack](https://github.com/FactoryXCode/MfPack). 
+Requires Delphi XE7 or later, Windows 10 and later, and [MfPack](https://github.com/FactoryXCode/MfPack).  
+  
 Install the included `Controls/HEOSControls.dproj` in the Win32 IDE before opening the form designer, unless these TDn components are already installed.  
   
 The project references `../../Source` and `../../AVR/Source` directly; it does not bundle private copies of the reusable APIs. 
 The repository's main build remains independent of MfPack; use this sample's build script for the full app.
-
+  
 If startup cannot connect, the app searches for HEOS devices on the local network, checks AVR control availability, and asks you to select when several receivers are found. 
 Starting the app reads settings and does not activate a zone. Configure the receiver's network control for access while in standby.
   
