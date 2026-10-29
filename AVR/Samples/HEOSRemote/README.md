@@ -24,7 +24,8 @@ A Denon AVR-X2700H DAB receiver has been used for building and testing the proje
 Project: FactoryX - HEOS CLI  
 Project location: FactoryXCode  
   
-https://github.com/FactoryXCode/FactoryX-HEOS-CLI
+https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
+https://github.com/FactoryXCode/MfPack  
   
 First release date: 13/08/2026  
 Final release date: 29/10/2026  
