@@ -1,7 +1,8 @@
-# Denon Remote - Delphi VCL application
+# HEOS Remote - Delphi VCL application
 
-Receiver controls, music-file playback and live Windows sound for the
-Denon AVR-X2700H DAB. No Indy, BASS, FFmpeg or extra audio DLLs.
+Receiver controls, music-file playback and live Windows sound for
+Denon and Marantz devices that supports HEOS / AVR protocols. 
+No Indy, BASS, FFmpeg or extra audio DLLs are needed.
 
 ## Main volume
 
