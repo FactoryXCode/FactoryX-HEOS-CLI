@@ -49,7 +49,8 @@ See the [API application build instructions](Examples/HEOSRemoteApi/README.md).
 
 ---
 
-Project: FactoryX - HEOS CLI 
+Project: FactoryX - HEOS CLI  
+  
 Project location:    
 https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
   
