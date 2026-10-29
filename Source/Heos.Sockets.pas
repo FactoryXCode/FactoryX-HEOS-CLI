@@ -149,7 +149,7 @@ function IPv4Valid(const Value: string): Boolean;
 var
   Parts: TArray<string>;
   Part: string;
-  I,
+  I: Integer;
   N: Integer;
 
 begin
@@ -298,16 +298,16 @@ begin
       Timeout.tv_usec := (TimeoutMs mod 1000) * 1000;
 
       Code := select(0,
-                       nil,
-                       @Writable,
-                       @Failed,
-                       @Timeout);
+                     nil,
+                     @Writable,
+                     @Failed,
+                     @Timeout);
       SocketCheck(Code,
-                    'Wait for receiver connection');
+                  'Wait for receiver connection');
 
       if (Code = 0) then
         raise EHeosSocket.CreateFmt('Receiver connection timed out (%s:%d).',
-                                          [Host, Port]);
+                                    [Host, Port]);
 
       Error := 0;
       Len := SizeOf(Error);
@@ -325,7 +325,7 @@ begin
 
       if (Writable.fd_count = 0) or (Failed.fd_count <> 0) then
         raise EHeosSocket.CreateFmt('Receiver connection was not established (%s:%d).',
-                                          [Host, Port]);
+                                    [Host, Port]);
     end;
 
   Mode := 0;
@@ -338,13 +338,13 @@ begin
   // Verify connection state before exposing the socket to a caller.
   Len := SizeOf(Peer);
   if (getpeername(FSocket,
-                     Peer,
-                     Len) = SOCKET_ERROR) then
+                  Peer,
+                  Len) = SOCKET_ERROR) then
     begin
 
       Error := WSAGetLastError;
       raise EHeosSocket.CreateFmt('Receiver is not connected (%s:%d, Windows socket error %d).',
-                                        [Host, Port, Error]);
+                                  [Host, Port, Error]);
     end;
 
   SetSocketTimeout(FSocket,
@@ -398,6 +398,7 @@ end;
 procedure SendText(S: TSocket;
                    const Text: AnsiString);
 begin
+
   if (Text <> '') then
     SendBytes(S,
               PAnsiChar(Text),
@@ -435,8 +436,13 @@ begin
           if (P > 65537) then
             raise EHeosSocket.Create('Reply too long');
 
-          Result := string(Copy(FReadBuffer, 1, P - 1));
-          Delete(FReadBuffer, 1, P);
+          Result := string(Copy(FReadBuffer,
+                           1,
+                           P - 1));
+
+          Delete(FReadBuffer,
+                 1,
+                 P);
           Exit;
         end;
 
@@ -444,6 +450,7 @@ begin
         raise EHeosSocket.Create('Reply too long');
 
       Remaining := TimeoutMs - Integer(Timer.ElapsedMilliseconds);
+
       if (Remaining <= 0) then
         begin
           // Keep partial replies for the next poll; TCP may split any line.
@@ -470,10 +477,14 @@ begin
         begin
           if (FReadBuffer <> '') then
             raise EHeosSocket.Create('Receiver closed connection before completing reply');
+
           raise EHeosSocket.Create('Receiver closed connection');
         end;
 
-      SetString(Chunk, PAnsiChar(@Buffer[0]), N);
+      SetString(Chunk,
+                PAnsiChar(@Buffer[0]),
+                N);
+
       FReadBuffer := FReadBuffer + Chunk;
     end;
 end;
@@ -544,6 +555,7 @@ begin
 
   Result := False;
   ErrorText := '';
+
   if not IPv4Valid(Host) or (Port = 0) or (TimeoutMs <= 0) then
     begin
 
@@ -551,7 +563,10 @@ begin
       Exit;
     end;
 
-  S := socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  S := socket(AF_INET,
+              SOCK_STREAM,
+              IPPROTO_TCP);
+
   if (S = INVALID_SOCKET) then
     begin
 
@@ -567,7 +582,7 @@ begin
       begin
 
         ErrorText := Format('Cannot configure receiver check (Windows socket error %d).',
-                              [WSAGetLastError]);
+                            [WSAGetLastError]);
         Exit;
       end;
 
@@ -582,10 +597,12 @@ begin
       begin
 
         Error := WSAGetLastError;
+
         if (Error <> WSAEWOULDBLOCK) then
           begin
 
-            ErrorText := Format('Connection failed (Windows socket error %d).', [Error]);
+            ErrorText := Format('Connection failed (Windows socket error %d).',
+                                [Error]);
             Exit;
           end;
 
@@ -608,20 +625,25 @@ begin
           begin
 
             ErrorText := Format('Receiver check failed (Windows socket error %d).',
-                                  [WSAGetLastError]);
+                                [WSAGetLastError]);
             Exit;
           end;
 
         Error := 0;
         Size := SizeOf(Error);
-        if (getsockopt(S, SOL_SOCKET, SO_ERROR, PAnsiChar(@Error), Size) = SOCKET_ERROR) then
+
+        if (getsockopt(S,
+                       SOL_SOCKET,
+                       SO_ERROR,
+                       PAnsiChar(@Error),
+                       Size) = SOCKET_ERROR) then
           Error := WSAGetLastError;
 
         if (Error <> 0) then
           begin
 
             ErrorText := Format('Receiver control port is unavailable (Windows socket error %d).',
-                                  [Error]);
+                                [Error]);
             Exit;
           end;
 
@@ -634,11 +656,13 @@ begin
       end;
 
     Size := SizeOf(Peer);
-    if (getpeername(S, Peer, Size) = SOCKET_ERROR) then
+    if (getpeername(S,
+                    Peer,
+                    Size) = SOCKET_ERROR) then
       begin
 
         ErrorText := Format('Receiver is not connected (Windows socket error %d).',
-                              [WSAGetLastError]);
+                            [WSAGetLastError]);
         Exit;
       end;
 

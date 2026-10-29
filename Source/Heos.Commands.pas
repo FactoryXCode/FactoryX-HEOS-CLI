@@ -63,30 +63,36 @@ interface
 
 uses
 
+  {System}
   System.SysUtils,
+  {HEOS}
   Heos.Cli;
 
 type
 
   THeosPlayState = (hpsPlay,
-                     hpsPause,
-                     hpsStop);
+                    hpsPause,
+                    hpsStop);
 
   THeosRepeatMode = (hrOff,
-                      hrAll,
-                      hrOne);
+                     hrAll,
+                     hrOne);
 
   THeosAddMode = (haPlayNow,
-                   haPlayNext,
-                   haAddToEnd,
-                   haReplaceAndPlay);
+                  haPlayNext,
+                  haAddToEnd,
+                  haReplaceAndPlay);
 
   THeosCommands = class
+
   public
+
     class function RegisterForChangeEvents(Enabled: Boolean): THeosCommand; static;
     class function CheckAccount(): THeosCommand; static;
+
     class function SignIn(const UserName: string;
-                            const Password: string): THeosCommand; static;
+                          const Password: string): THeosCommand; static;
+
     class function SignOut(): THeosCommand; static;
     class function HeartBeat(): THeosCommand; static;
     class function Reboot(): THeosCommand; static;
@@ -103,106 +109,150 @@ type
     class function PlayNext(PlayerId: Int64): THeosCommand; static;
     class function PlayPrevious(PlayerId: Int64): THeosCommand; static;
     class function CheckUpdate(PlayerId: Int64): THeosCommand; static;
+
     class function SetPlayState(PlayerId: Int64;
-                                  State: THeosPlayState): THeosCommand; static;
+                                State: THeosPlayState): THeosCommand; static;
+
     class function SetPlayerVolume(PlayerId: Int64;
-                                     Level: Integer): THeosCommand; static;
+                                   Level: Integer): THeosCommand; static;
+
     class function PlayerVolumeUp(PlayerId: Int64;
-                                    Step: Integer = 5): THeosCommand; static;
+                                  Step: Integer = 5): THeosCommand; static;
+
     class function PlayerVolumeDown(PlayerId: Int64;
-                                      Step: Integer = 5): THeosCommand; static;
+                                    Step: Integer = 5): THeosCommand; static;
+
     class function SetPlayerMute(PlayerId: Int64;
-                                   Muted: Boolean): THeosCommand; static;
+                                 Muted: Boolean): THeosCommand; static;
+
     class function SetPlayMode(PlayerId: Int64;
-                                 RepeatMode: THeosRepeatMode;
-                                 Shuffle: Boolean): THeosCommand; static;
+                               RepeatMode: THeosRepeatMode;
+                               Shuffle: Boolean): THeosCommand; static;
+
     class function GetQueue(PlayerId: Int64;
-                              First: Integer = -1;
-                              Last: Integer = -1): THeosCommand; static;
+                            First: Integer = -1;
+                            Last: Integer = -1): THeosCommand; static;
+
     class function PlayQueue(PlayerId: Int64;
-                               QueueId: Int64): THeosCommand; static;
+                             QueueId: Int64): THeosCommand; static;
+
     class function RemoveFromQueue(PlayerId: Int64;
-                                     const QueueIds: array of Int64): THeosCommand; static;
+                                   const QueueIds: array of Int64): THeosCommand; static;
+
     class function SaveQueue(PlayerId: Int64;
-                               const Name: string): THeosCommand; static;
+                             const Name: string): THeosCommand; static;
+
     class function MoveQueueItem(PlayerId: Int64;
-                                   const QueueIds: array of Int64;
-                                   DestinationId: Int64): THeosCommand; static;
+                                 const QueueIds: array of Int64;
+                                 DestinationId: Int64): THeosCommand; static;
+
     class function SetQuickSelect(PlayerId: Int64;
-                                    QuickSelectId: Integer): THeosCommand; static;
+                                  QuickSelectId: Integer): THeosCommand; static;
+
     class function PlayQuickSelect(PlayerId: Int64;
-                                     QuickSelectId: Integer): THeosCommand; static;
+                                   QuickSelectId: Integer): THeosCommand; static;
+
     class function GetQuickSelects(PlayerId: Int64;
-                                     QuickSelectId: Integer = 0): THeosCommand; static;
+                                   QuickSelectId: Integer = 0): THeosCommand; static;
+
     class function GetGroups(): THeosCommand; static;
     class function GetGroupInfo(GroupId: Int64): THeosCommand; static;
+
     class function GetGroupVolume(GroupId: Int64): THeosCommand; static;
+
     class function GetGroupMute(GroupId: Int64): THeosCommand; static;
+
     class function ToggleGroupMute(GroupId: Int64): THeosCommand; static;
+
     class function SetGroup(const PlayerIds: array of Int64): THeosCommand; static;
+
     class function SetGroupVolume(GroupId: Int64;
-                                    Level: Integer): THeosCommand; static;
+                                  Level: Integer): THeosCommand; static;
+
     class function GroupVolumeUp(GroupId: Int64;
-                                   Step: Integer = 5): THeosCommand; static;
+                                 Step: Integer = 5): THeosCommand; static;
+
     class function GroupVolumeDown(GroupId: Int64;
-                                     Step: Integer = 5): THeosCommand; static;
+                                   Step: Integer = 5): THeosCommand; static;
+
     class function SetGroupMute(GroupId: Int64;
-                                  Muted: Boolean): THeosCommand; static;
+                                Muted: Boolean): THeosCommand; static;
+
     class function GetMusicSources(): THeosCommand; static;
+
     class function GetSourceInfo(SourceId: Int64): THeosCommand; static;
+
     class function Browse(SourceId: Int64;
-                            const ContainerId: string = '';
-                            First: Integer = -1;
-                            Last: Integer = -1): THeosCommand; static;
+                          const ContainerId: string = '';
+                          First: Integer = -1;
+                          Last: Integer = -1): THeosCommand; static;
+
     class function GetSearchCriteria(SourceId: Int64): THeosCommand; static;
+
     class function Search(SourceId: Int64;
-                            const SearchText: string;
-                            const CriteriaId: string;
-                            First: Integer = -1;
-                            Last: Integer = -1): THeosCommand; static;
+                          const SearchText: string;
+                          const CriteriaId: string;
+                          First: Integer = -1;
+                           Last: Integer = -1): THeosCommand; static;
+
     class function PlayStation(PlayerId: Int64;
-                                 SourceId: Int64;
-                                 const MediaId: string;
-                                 const ContainerId: string = '';
-                                 const Name: string = ''): THeosCommand; static;
+                               SourceId: Int64;
+                               const MediaId: string;
+                               const ContainerId: string = '';
+                               const Name: string = ''): THeosCommand; static;
+
     class function PlayPreset(PlayerId: Int64;
-                                Preset: Integer): THeosCommand; static;
+                              Preset: Integer): THeosCommand; static;
+
     class function PlayInput(PlayerId: Int64;
-                               const InputName: string): THeosCommand; static;
+                             const InputName: string): THeosCommand; static;
+
     class function PlayRemoteInput(PlayerId: Int64;
-                                     SourcePlayerId: Int64;
-                                     const InputName: string): THeosCommand; static;
+                                   SourcePlayerId: Int64;
+                                   const InputName: string): THeosCommand; static;
+
     class function PlayUrl(PlayerId: Int64;
-                             const Url: string): THeosCommand; static;
+                           const Url: string): THeosCommand; static;
+
     class function AddContainerToQueue(PlayerId: Int64;
-                                         SourceId: Int64;
-                                         const ContainerId: string;
-                                         Mode: THeosAddMode): THeosCommand; static;
+                                       SourceId: Int64;
+                                       const ContainerId: string;
+                                       Mode: THeosAddMode): THeosCommand; static;
+
     class function AddTrackToQueue(PlayerId: Int64;
-                                     SourceId: Int64;
-                                     const ContainerId: string;
-                                     const MediaId: string;
-                                     Mode: THeosAddMode): THeosCommand; static;
+                                   SourceId: Int64;
+                                   const ContainerId: string;
+                                   const MediaId: string;
+                                   Mode: THeosAddMode): THeosCommand; static;
+
     class function GetPlaylists(const ContainerId: string = '';
-                                  First: Integer = -1;
-                                  Last: Integer = -1): THeosCommand; static;
-    class function GetHistory(const ContainerId: string = '';
                                 First: Integer = -1;
                                 Last: Integer = -1): THeosCommand; static;
+
+    class function GetHistory(const ContainerId: string = '';
+                              First: Integer = -1;
+                              Last: Integer = -1): THeosCommand; static;
+
     class function GetFavorites(const ContainerId: string = '';
-                                  First: Integer = -1;
-                                  Last: Integer = -1): THeosCommand; static;
+                                First: Integer = -1;
+                                Last: Integer = -1): THeosCommand; static;
+
     class function RenamePlaylist(SourceId: Int64;
-                                    const ContainerId: string;
-                                    const Name: string): THeosCommand; static;
+                                  const ContainerId: string;
+                                  const Name: string): THeosCommand; static;
+
     class function DeletePlaylist(SourceId: Int64;
-                                    const ContainerId: string): THeosCommand; static;
+                                  const ContainerId: string): THeosCommand; static;
+
     class function RetrieveMetadata(SourceId: Int64;
-                                      const AlbumId: string): THeosCommand; static;
+                                    const AlbumId: string): THeosCommand; static;
+
     class function GetServiceOptions(SourceId: Int64): THeosCommand; static;
+
     class function SetServiceOption(OptionId: Integer;
-                                      const Parameters: array of THeosParameter): THeosCommand; static;
+                                    const Parameters: array of THeosParameter): THeosCommand; static;
   end;
+
 
 implementation
 
@@ -211,6 +261,7 @@ const
   PlayStateText: array[THeosPlayState] of string = ('play',
                                                     'pause',
                                                     'stop');
+
   RepeatText: array[THeosRepeatMode] of string = ('off',
                                                   'on_all',
                                                   'on_one');
@@ -260,7 +311,9 @@ begin
 
   if (Length(Ids) = 0) then
     raise EArgumentException.Create('HEOS requires at least one ID');
+
   Result := '';
+
   for Id in Ids do
     begin
       if PositiveOnly then
@@ -279,9 +332,11 @@ begin
 
   if (First = -1) and (Last = -1) then
     Exit;
+
   if (First < 0) or (Last < First) then
     raise EArgumentException.Create('HEOS range must be an inclusive, zero-based interval');
-  Command.Add('range', IntToStr(First) + ',' + IntToStr(Last));
+  Command.Add('range',
+              IntToStr(First) + ',' + IntToStr(Last));
 end;
 
 
@@ -289,7 +344,8 @@ class function THeosCommands.RegisterForChangeEvents(Enabled: Boolean): THeosCom
 begin
 
   Result := THeosCommand.Create('system/register_for_change_events');
-  Result.Add('enable', OnOff(Enabled));
+  Result.Add('enable',
+             OnOff(Enabled));
 end;
 
 
@@ -301,7 +357,7 @@ end;
 
 
 class function THeosCommands.SignIn(const UserName: string;
-                                      const Password: string): THeosCommand;
+                                    const Password: string): THeosCommand;
 begin
 
   Result := THeosCommand.Create('system/sign_in');
@@ -445,7 +501,7 @@ end;
 
 
 class function THeosCommands.SetPlayerVolume(PlayerId: Int64;
-                                               Level: Integer): THeosCommand;
+                                             Level: Integer): THeosCommand;
 begin
 
   CheckRange(Level, 0, 100);
@@ -456,7 +512,7 @@ end;
 
 
 class function THeosCommands.PlayerVolumeUp(PlayerId: Int64;
-                                              Step: Integer): THeosCommand;
+                                            Step: Integer): THeosCommand;
 begin
 
   CheckRange(Step, 1, 10);
@@ -467,7 +523,7 @@ end;
 
 
 class function THeosCommands.PlayerVolumeDown(PlayerId: Int64;
-                                                Step: Integer): THeosCommand;
+                                              Step: Integer): THeosCommand;
 begin
 
   CheckRange(Step, 1, 10);
@@ -478,7 +534,7 @@ end;
 
 
 class function THeosCommands.SetPlayerMute(PlayerId: Int64;
-                                             Muted: Boolean): THeosCommand;
+                                           Muted: Boolean): THeosCommand;
 begin
 
   Result := THeosCommand.Create('player/set_mute');
@@ -488,8 +544,8 @@ end;
 
 
 class function THeosCommands.SetPlayMode(PlayerId: Int64;
-                                           RepeatMode: THeosRepeatMode;
-                                           Shuffle: Boolean): THeosCommand;
+                                         RepeatMode: THeosRepeatMode;
+                                         Shuffle: Boolean): THeosCommand;
 begin
 
   Result := THeosCommand.Create('player/set_play_mode');
@@ -500,8 +556,8 @@ end;
 
 
 class function THeosCommands.GetQueue(PlayerId: Int64;
-                                        First: Integer;
-                                        Last: Integer): THeosCommand;
+                                      First: Integer;
+                                      Last: Integer): THeosCommand;
 begin
 
   Result := THeosCommand.Create('player/get_queue');
@@ -511,7 +567,7 @@ end;
 
 
 class function THeosCommands.PlayQueue(PlayerId: Int64;
-                                         QueueId: Int64): THeosCommand;
+                                       QueueId: Int64): THeosCommand;
 begin
 
   CheckPositive(QueueId);
@@ -522,7 +578,7 @@ end;
 
 
 class function THeosCommands.RemoveFromQueue(PlayerId: Int64;
-                                               const QueueIds: array of Int64): THeosCommand;
+                                             const QueueIds: array of Int64): THeosCommand;
 begin
 
   Result := THeosCommand.Create('player/remove_from_queue');
@@ -532,7 +588,7 @@ end;
 
 
 class function THeosCommands.SaveQueue(PlayerId: Int64;
-                                         const Name: string): THeosCommand;
+                                       const Name: string): THeosCommand;
 begin
 
   CheckName(Name);
@@ -543,8 +599,8 @@ end;
 
 
 class function THeosCommands.MoveQueueItem(PlayerId: Int64;
-                                             const QueueIds: array of Int64;
-                                             DestinationId: Int64): THeosCommand;
+                                           const QueueIds: array of Int64;
+                                           DestinationId: Int64): THeosCommand;
 begin
 
   CheckPositive(DestinationId);
@@ -556,7 +612,7 @@ end;
 
 
 class function THeosCommands.SetQuickSelect(PlayerId: Int64;
-                                              QuickSelectId: Integer): THeosCommand;
+                                            QuickSelectId: Integer): THeosCommand;
 begin
 
   CheckRange(QuickSelectId, 1, 6);
@@ -567,7 +623,7 @@ end;
 
 
 class function THeosCommands.PlayQuickSelect(PlayerId: Int64;
-                                               QuickSelectId: Integer): THeosCommand;
+                                             QuickSelectId: Integer): THeosCommand;
 begin
 
   CheckRange(QuickSelectId, 1, 6);
@@ -578,12 +634,16 @@ end;
 
 
 class function THeosCommands.GetQuickSelects(PlayerId: Int64;
-                                               QuickSelectId: Integer): THeosCommand;
+                                             QuickSelectId: Integer): THeosCommand;
 begin
 
-  CheckRange(QuickSelectId, 0, 6);
+  CheckRange(QuickSelectId,
+             0,
+             6);
+
   Result := THeosCommand.Create('player/get_quickselects');
   Result.Add('pid', IntToStr(PlayerId));
+
   if (QuickSelectId <> 0) then
     Result.Add('id', IntToStr(QuickSelectId));
 end;
@@ -637,7 +697,7 @@ end;
 
 
 class function THeosCommands.SetGroupVolume(GroupId: Int64;
-                                              Level: Integer): THeosCommand;
+                                            Level: Integer): THeosCommand;
 begin
 
   CheckRange(Level, 0, 100);
@@ -648,7 +708,7 @@ end;
 
 
 class function THeosCommands.GroupVolumeUp(GroupId: Int64;
-                                             Step: Integer): THeosCommand;
+                                           Step: Integer): THeosCommand;
 begin
 
   CheckRange(Step, 1, 10);
@@ -659,7 +719,7 @@ end;
 
 
 class function THeosCommands.GroupVolumeDown(GroupId: Int64;
-                                               Step: Integer): THeosCommand;
+                                             Step: Integer): THeosCommand;
 begin
 
   CheckRange(Step, 1, 10);
@@ -670,7 +730,7 @@ end;
 
 
 class function THeosCommands.SetGroupMute(GroupId: Int64;
-                                            Muted: Boolean): THeosCommand;
+                                          Muted: Boolean): THeosCommand;
 begin
 
   Result := THeosCommand.Create('group/set_mute');
@@ -695,9 +755,9 @@ end;
 
 
 class function THeosCommands.Browse(SourceId: Int64;
-                                      const ContainerId: string;
-                                      First: Integer;
-                                      Last: Integer): THeosCommand;
+                                    const ContainerId: string;
+                                    First: Integer;
+                                    Last: Integer): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/browse');
@@ -717,10 +777,10 @@ end;
 
 
 class function THeosCommands.Search(SourceId: Int64;
-                                      const SearchText: string;
-                                      const CriteriaId: string;
-                                      First: Integer;
-                                      Last: Integer): THeosCommand;
+                                    const SearchText: string;
+                                    const CriteriaId: string;
+                                    First: Integer;
+                                    Last: Integer): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/search');
@@ -732,10 +792,10 @@ end;
 
 
 class function THeosCommands.PlayStation(PlayerId: Int64;
-                                           SourceId: Int64;
-                                           const MediaId: string;
-                                           const ContainerId: string;
-                                           const Name: string): THeosCommand;
+                                         SourceId: Int64;
+                                         const MediaId: string;
+                                         const ContainerId: string;
+                                         const Name: string): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/play_stream');
@@ -750,7 +810,7 @@ end;
 
 
 class function THeosCommands.PlayPreset(PlayerId: Int64;
-                                          Preset: Integer): THeosCommand;
+                                        Preset: Integer): THeosCommand;
 begin
 
   CheckPositive(Preset);
@@ -761,7 +821,7 @@ end;
 
 
 class function THeosCommands.PlayInput(PlayerId: Int64;
-                                         const InputName: string): THeosCommand;
+                                       const InputName: string): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/play_input');
@@ -771,8 +831,8 @@ end;
 
 
 class function THeosCommands.PlayRemoteInput(PlayerId: Int64;
-                                               SourcePlayerId: Int64;
-                                               const InputName: string): THeosCommand;
+                                             SourcePlayerId: Int64;
+                                             const InputName: string): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/play_input');
@@ -783,7 +843,7 @@ end;
 
 
 class function THeosCommands.PlayUrl(PlayerId: Int64;
-                                       const Url: string): THeosCommand;
+                                     const Url: string): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/play_stream');
@@ -793,9 +853,9 @@ end;
 
 
 class function THeosCommands.AddContainerToQueue(PlayerId: Int64;
-                                                   SourceId: Int64;
-                                                   const ContainerId: string;
-                                                   Mode: THeosAddMode): THeosCommand;
+                                                 SourceId: Int64;
+                                                 const ContainerId: string;
+                                                 Mode: THeosAddMode): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/add_to_queue');
@@ -807,10 +867,10 @@ end;
 
 
 class function THeosCommands.AddTrackToQueue(PlayerId: Int64;
-                                               SourceId: Int64;
-                                               const ContainerId: string;
-                                               const MediaId: string;
-                                               Mode: THeosAddMode): THeosCommand;
+                                             SourceId: Int64;
+                                             const ContainerId: string;
+                                             const MediaId: string;
+                                             Mode: THeosAddMode): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/add_to_queue');
@@ -823,8 +883,8 @@ end;
 
 
 class function THeosCommands.GetPlaylists(const ContainerId: string;
-                                            First: Integer;
-                                            Last: Integer): THeosCommand;
+                                          First: Integer;
+                                          Last: Integer): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/browse');
@@ -836,8 +896,8 @@ end;
 
 
 class function THeosCommands.GetHistory(const ContainerId: string;
-                                          First: Integer;
-                                          Last: Integer): THeosCommand;
+                                        First: Integer;
+                                        Last: Integer): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/browse');
@@ -849,8 +909,8 @@ end;
 
 
 class function THeosCommands.GetFavorites(const ContainerId: string;
-                                            First: Integer;
-                                            Last: Integer): THeosCommand;
+                                          First: Integer;
+                                          Last: Integer): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/browse');
@@ -862,8 +922,8 @@ end;
 
 
 class function THeosCommands.RenamePlaylist(SourceId: Int64;
-                                              const ContainerId: string;
-                                              const Name: string): THeosCommand;
+                                            const ContainerId: string;
+                                            const Name: string): THeosCommand;
 begin
 
   CheckName(Name);
@@ -875,7 +935,7 @@ end;
 
 
 class function THeosCommands.DeletePlaylist(SourceId: Int64;
-                                              const ContainerId: string): THeosCommand;
+                                            const ContainerId: string): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/delete_playlist');
@@ -885,7 +945,7 @@ end;
 
 
 class function THeosCommands.RetrieveMetadata(SourceId: Int64;
-                                                const AlbumId: string): THeosCommand;
+                                              const AlbumId: string): THeosCommand;
 begin
 
   Result := THeosCommand.Create('browse/retrieve_metadata');
@@ -903,7 +963,7 @@ end;
 
 
 class function THeosCommands.SetServiceOption(OptionId: Integer;
-                                                const Parameters: array of THeosParameter): THeosCommand;
+                                              const Parameters: array of THeosParameter): THeosCommand;
 var
   Item: THeosParameter;
 
@@ -911,9 +971,13 @@ begin
 
   CheckPositive(OptionId);
   Result := THeosCommand.Create('browse/set_service_option');
-  Result.Add('option', IntToStr(OptionId));
+  Result.Add('option',
+             IntToStr(OptionId));
+
   for Item in Parameters do
-    Result.Add(Item.Name, Item.Value, Item.Encoded);
+    Result.Add(Item.Name,
+               Item.Value,
+               Item.Encoded);
 end;
 
 end.
