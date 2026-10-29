@@ -16,7 +16,7 @@ HEOS playback and AVR settings use separate protocols, with availability dependi
 
 The API's have the following samples:
 - A simple HEOS remote demonstrates the CLI with standard Delphi VCL components.
-- The complete HEOS Remote application adds playlist editing, RDJ Pro playlist import, file streaming and Windows audio streaming.
+- The complete HEOS Remote application adds playlist editing, file streaming, playlist streaming and Windows audio (loopback) streaming.
 Its controls and form layouts are included for editing in the Delphi IDE.
 
 ![](https://github.com/FactoryXCode/FactoryX-HEOS-CLI/blob/main/Pic/HEOSRemote_s.png)
