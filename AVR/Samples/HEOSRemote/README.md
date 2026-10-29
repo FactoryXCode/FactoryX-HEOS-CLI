@@ -22,8 +22,7 @@ Please note that availability depends on the receiver's settings and firmware ve
 A Denon AVR-X2700H DAB receiver has been used for building and testing the project.
 
 Project: FactoryX - HEOS CLI  
-Project location: FactoryXCode  
-  
+Project location:  
 https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
 https://github.com/FactoryXCode/MfPack  
   
