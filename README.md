@@ -49,9 +49,8 @@ See the [API application build instructions](Examples/HEOSRemoteApi/README.md).
 
 ---
 
-Project: FactoryX - HEOS-CLI 
-Project location: FactoryXCode  
-  
+Project: FactoryX - HEOS CLI 
+Project location:    
 https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
   
 First release date: 13/08/2026  
