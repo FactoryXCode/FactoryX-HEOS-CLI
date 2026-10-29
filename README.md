@@ -47,4 +47,4 @@ See the [API application build instructions](Examples/HEOSRemoteApi/README.md).
 
 ---
 
-**(c) FactoryX. All rights reserved.**
+**(c) FactoryX. All rights reserved. **
