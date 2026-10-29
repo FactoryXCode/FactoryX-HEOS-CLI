@@ -90,7 +90,7 @@ The existing main-form edits and `edHost` component name are preserved.
 
 ## Open and build
 
-Open `DenonRemote.dproj` in Delphi XE7. Both Win32 and Win64 are supported;
+Open `DenonRemote.dproj` in the Delphi IDE. Both Win32 and Win64 are supported;
 the existing project selects Win64 by default.
 Open `MainForm.pas` and press F12 for the editable VCL form. Use Ctrl+F9 to
 compile and F9 to run. Reopen the project if it was already open during this update.

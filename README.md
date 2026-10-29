@@ -14,9 +14,12 @@ HEOS playback and AVR settings use separate protocols, with availability dependi
 
 **Remote samples**
 
-A simple HEOS remote demonstrates the CLI with standard Delphi VCL components.
-The complete HEOS Remote application adds playlist editing, RDJ Pro playlist import, file streaming and Windows audio streaming.
+The API's have the following samples:
+- A simple HEOS remote demonstrates the CLI with standard Delphi VCL components.
+- The complete HEOS Remote application adds playlist editing, file streaming, playlist streaming and Windows audio (loopback) streaming.
 Its controls and form layouts are included for editing in the Delphi IDE.
+
+![](https://github.com/FactoryXCode/FactoryX-HEOS-CLI/blob/main/Pic/HEOSRemote_s.png)
 
 **Note:**
 Before opening the complete HEOS Remote application in the form designer, install its included custom controls and configure the MfPack source path.
@@ -25,8 +28,8 @@ See the [API application build instructions](Examples/HEOSRemoteApi/README.md).
 ## Dependencies for Delphi development
 
 - Delphi XE7 up to and including Delphi 13.1.
-- Windows 10 22H2 or higher; Win32 and Win64 targets.
-- The reusable APIs and standard VCL sample require no MfPack installation.
+- Windows 10 22H2 or higher.
+- The reusable APIs and standard VCL sample requires no MfPack installation.
 - [**MfPack**](https://github.com/FactoryXCode/MfPack) is required for the complete HEOS Remote application sample.
 
 ## What's included
@@ -43,8 +46,15 @@ See the [API application build instructions](Examples/HEOSRemoteApi/README.md).
 - [Technical paper](TECHNICAL-PAPER.md) — architecture, API examples, protocols, build instructions and validation.
 - [HEOS command catalog](COMMANDS.md).
 - [AVR API documentation](AVR/README.md).
-- [License](LICENSE) and the FactoryX notices in each source file.
 
 ---
 
-**(c) FactoryX. All rights reserved. **
+Project: FactoryX - HEOS CLI  
+  
+Project location:    
+https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
+  
+First release date: 13/08/2026  
+Final release date: 29/10/2026  
+  
+Copyright © FactoryX. All rights reserved.
