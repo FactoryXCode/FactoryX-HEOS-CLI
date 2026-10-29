@@ -6,6 +6,8 @@ This is the complete Delphi VCL HEOS Remote application, including its DFM forms
 
 The original application currently uses its own `HEOSTransport.pas` and `Heos.pas` adapters. The reusable APIs are in `AVR/Source` and the repository's top-level `Source`; this source snapshot has not been silently migrated to them. `AVR/Samples/AvrCliDemo.dpr` demonstrates the new AVR API directly.
 
+The API-based copy is available in [Examples/HEOSRemoteApi](../../../Examples/HEOSRemoteApi/README.md), using `THeosClient` and `TAvrClient`.
+
 ## Build
 
 This application requires MfPack's `src` folder as well as Delphi XE7 or higher up to 13.1. Its custom `TDn` controls are included under `Controls`. For form editing, install the included `Controls/HEOSControls.dproj` package in the Win32 Delphi IDE if these classes are not installed already.

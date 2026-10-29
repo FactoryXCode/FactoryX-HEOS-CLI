@@ -1,4 +1,4 @@
-# FactoryX HEOS CLI for Delphi
+﻿# FactoryX HEOS CLI for Delphi
 
 **HEOS CLI**
 
@@ -20,7 +20,7 @@ Its controls and form layouts are included for editing in the Delphi IDE.
 
 **Note:**
 Before opening the complete HEOS Remote application in the form designer, install its included custom controls and configure the MfPack source path.
-See the [application build instructions](AVR/Samples/HEOSRemote/README.md).
+See the [API application build instructions](Examples/HEOSRemoteApi/README.md).
 
 ## Dependencies for Delphi development
 
@@ -34,7 +34,8 @@ See the [application build instructions](AVR/Samples/HEOSRemote/README.md).
 - **HEOS CLI API** — asynchronous commands, replies and events in `Source`.
 - **AVR API** — receiver and zone controls in `AVR/Source`.
 - **Standard VCL remote** — [MfHeosRemote](Examples/MfHeosRemote/README.md).
-- **Complete HEOS Remote app** — [application sample](AVR/Samples/HEOSRemote/README.md).
+- **Complete HEOS Remote app using the APIs** — [HEOSRemoteApi](Examples/HEOSRemoteApi/README.md).
+- **Original application snapshot** — [AVR sample](AVR/Samples/HEOSRemote/README.md).
 - **Console examples and tests** — read-only examples and local receiver simulators.
 
 ## Documentation

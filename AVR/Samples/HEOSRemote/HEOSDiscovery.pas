@@ -1,4 +1,4 @@
-// FactoryX
+﻿// FactoryX
 //
 // Copyright: FactoryX. All rights reserved.
 //
@@ -11,7 +11,7 @@
 // Language: ENU
 //
 // Revision Version: 1.0.0.1
-// Description: Native SSDP discovery for Denon network devices.
+// Description: Native SSDP discovery for HEOS network devices.
 //
 // Company: FactoryX
 // Intiator(s): Tony (maXcomX), Carmen (carmenh).
@@ -75,6 +75,7 @@ type
     Address: string;
     Name: string;
     Model: string;
+    AvrAvailable: Boolean;
   end;
 
   THEOSDiscovery = class(TThread)
@@ -152,15 +153,14 @@ function ParseHEOSDescription(const Xml: string;
                                const Address: string;
                                out Device: THEOSDevice): Boolean;
 var
-  Manufacturer: string;
+  Description: string;
 begin
 
   Device := Default(THEOSDevice);
-  Manufacturer := LowerCase(XmlText(Xml, 'manufacturer'));
+  Description := LowerCase(Xml);
   Device.Model := XmlText(Xml, 'modelName');
   Result := IPv4Valid(Address) and
-            ((Pos('denon', Manufacturer) > 0) or
-             ((Pos('d&m', Manufacturer) > 0) and StartsText('AVR', Device.Model)));
+            (Pos('urn:schemas-denon-com:device:act-denon:1', Description) > 0);
   if not Result then
     Exit;
 
@@ -273,8 +273,7 @@ end;
 
 procedure THEOSDiscovery.Execute();
 const
-  Targets: array[0..1] of string = ('urn:schemas-denon-com:device:ACT-Denon:1',
-                                    'urn:schemas-upnp-org:device:MediaRenderer:1');
+  Targets: array[0..0] of string = ('urn:schemas-denon-com:device:ACT-Denon:1');
 
 var
   Sockets: TList<TSocket>;
@@ -301,6 +300,7 @@ var
   Xml: string;
   Device: THEOSDevice;
   Clock: TStopwatch;
+  ErrorText: string;
 
 begin
 
@@ -461,8 +461,11 @@ begin
 
           if ParseHEOSDescription(Xml,
                                    Address,
-                                   Device) then
+                                   Device) and
+             ProbeReceiver(Address, 1255, 800, ErrorText) then
         begin
+          // HEOS speakers also advertise the CLI; AVR control is separate.
+          Device.AvrAvailable := ProbeReceiver(Address, 23, 800, ErrorText);
           Known.Add(Address);
           SetLength(FDevices, Length(FDevices) + 1);
           FDevices[High(FDevices)] := Device;

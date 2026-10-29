@@ -4,7 +4,8 @@ param(
     [string]$MfPackRoot,
     [ValidateSet('Win32', 'Win64')]
     [string]$Platform = 'Win32',
-    [string]$DelphiRoot = ${env:BDS}
+    [string]$DelphiRoot = ${env:BDS},
+    [switch]$BuildTests
 )
 $ErrorActionPreference = 'Stop'
 if (-not $DelphiRoot) {
@@ -14,15 +15,20 @@ $compiler = Join-Path $DelphiRoot ('bin\' + $(if ($Platform -eq 'Win32') { 'dcc3
 $sourcePath = Join-Path $MfPackRoot 'src'
 if (-not (Test-Path -LiteralPath $sourcePath)) { throw 'MfPackRoot must point to the MfPack root containing src.' }
 if (-not (Test-Path -LiteralPath $compiler)) { throw 'Delphi compiler not found; supply -DelphiRoot.' }
-$repositoryRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
-$outputPath = Join-Path $repositoryRoot ('Build\' + $Platform + '\HEOSRemote')
+$repositoryRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$outputPath = Join-Path $repositoryRoot ('Build\' + $Platform + '\HEOSRemoteApi')
 $dcuPath = Join-Path $outputPath 'DCU'
 New-Item -ItemType Directory -Path $dcuPath -Force | Out-Null
 $libraryPath = Join-Path $DelphiRoot ('lib\' + $Platform.ToLowerInvariant() + '\release')
+$apiPath = (Join-Path $repositoryRoot 'Source') + ';' + (Join-Path $repositoryRoot 'AVR\Source')
 $controlsPath = Join-Path $PSScriptRoot 'Controls'
 Push-Location $PSScriptRoot
 try {
-    & $compiler -B -Q '-NSSystem;Winapi;Vcl;Data;Xml;System.Win;Data.Win;Xml.Win' "-U$controlsPath;$sourcePath;$libraryPath" "-N0$dcuPath" "-E$outputPath" HEOSRemote.dpr
+    & $compiler -B -Q '-NSSystem;Winapi;Vcl;Data;Xml;System.Win;Data.Win;Xml.Win' "-U$apiPath;$controlsPath;$sourcePath;$libraryPath" "-N0$dcuPath" "-E$outputPath" HEOSRemote.dpr
     if ($LASTEXITCODE -ne 0) { throw 'HEOS Remote build failed.' }
+    if ($BuildTests) {
+        & $compiler -B -Q '-NSSystem;Winapi;Xml;Xml.Win' "-U$PSScriptRoot;$apiPath;$libraryPath" "-N0$dcuPath" "-E$outputPath" Tests\RemoteApiTests.dpr
+        if ($LASTEXITCODE -ne 0) { throw 'Remote API tests build failed.' }
+    }
 }
 finally { Pop-Location }

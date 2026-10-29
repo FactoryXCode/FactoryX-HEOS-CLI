@@ -95,6 +95,26 @@ uses
 
 type
 
+  TReceiverAvailabilityProbe = class(TThread)
+  private
+
+    FHost: string;
+    FAvailable: Boolean;
+    FErrorText: string;
+
+  protected
+
+    procedure Execute(); override;
+
+  public
+
+    constructor Create(const Host: string);
+    property Host: string read FHost;
+    property Available: Boolean read FAvailable;
+    property ErrorText: string read FErrorText;
+  end;
+
+
   THEOSTrackInfo = class(TThread)
   private
     FFileName: string;
@@ -190,6 +210,8 @@ type
     Bevel7: TBevel;
     Label4: TLabel;
     Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
 
     procedure FormCreate(Sender: TObject);
     procedure pbProgressMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -258,6 +280,12 @@ type
     FVolumePending: Boolean;
     FVolumeReadPending: Boolean;
     FInitialVolumeRead: Boolean;
+    FReceiverCheck: TReceiverAvailabilityProbe;
+    FReceiverCheckReadAll: Boolean;
+    FReceiverCheckDiscover: Boolean;
+    FDiscoveryReconnect: Boolean;
+    FDiscoveryReadAll: Boolean;
+    FDiscoveryComplete: Boolean;
     FVolumeRequest: Boolean;
     FUpdatingVolume: Boolean;
     FVolumeReady: Boolean;
@@ -343,6 +371,10 @@ type
     procedure UpdatePlaybackProgress();
     procedure UpdateProgressDisplay();
     procedure StartProgressMonitor();
+    procedure BeginReceiverCheck(ReadAll: Boolean = False;
+                                  Discover: Boolean = True);
+    procedure BeginDiscovery(Reconnect: Boolean; ReadAll: Boolean);
+    procedure CompleteReceiverCheck();
     function ProgressPositionAt(X, Y: Integer; out PositionMs: Int64): Boolean;
     function CanSeekPlayback(): Boolean;
 
@@ -422,6 +454,25 @@ const
                                            'SICD',
                                            'SITUNER',
                                            'SINET');
+
+constructor TReceiverAvailabilityProbe.Create(const Host: string);
+begin
+
+  inherited Create(True);
+  FreeOnTerminate := False;
+  FHost := Host;
+end;
+
+
+procedure TReceiverAvailabilityProbe.Execute();
+begin
+
+  FAvailable := ProbeReceiver(FHost,
+                                23,
+                                2000,
+                                FErrorText);
+end;
+
 
 constructor THEOSTrackInfo.Create(const FileName: string);
 begin
@@ -840,12 +891,96 @@ begin
     Exit;
 
   FInitialVolumeRead := True;
+  BeginReceiverCheck();
+end;
+
+
+procedure THEOSForm.BeginReceiverCheck(ReadAll: Boolean;
+                                         Discover: Boolean);
+begin
+
+  if Assigned(FReceiverCheck) then
+    Exit;
+
+  if Assigned(FWorker) and not FWorker.Finished then
+    Exit;
+
+  if Assigned(FDiscovery) and not FDiscovery.Finished and
+     not FDiscoveryComplete then
+    Exit;
+
+  FReceiverCheckReadAll := ReadAll;
+  FReceiverCheckDiscover := Discover;
+  FReceiverCheck := TReceiverAvailabilityProbe.Create(Trim(edHost.Text));
+  VolumeTimer.Enabled := False;
+  FStatus.Caption := 'Checking receiver availability ...';
+  lblStreamInfo.Caption := FStatus.Caption;
+  FReceiverCheck.Start;
+end;
+
+
+procedure THEOSForm.CompleteReceiverCheck();
+var
+  Available: Boolean;
+  Host: string;
+  ErrorText: string;
+  ReadAll: Boolean;
+
+begin
+
+  if not Assigned(FReceiverCheck) or not FReceiverCheck.Finished then
+    Exit;
+
+  Available := FReceiverCheck.Available;
+  Host := FReceiverCheck.Host;
+  ErrorText := FReceiverCheck.ErrorText;
+  ReadAll := FReceiverCheckReadAll;
+  FreeAndNil(FReceiverCheck);
+
+  if (Host <> Trim(edHost.Text)) then
+    begin
+
+      BeginReceiverCheck(ReadAll);
+      Exit;
+    end;
+
+  if not Available then
+    begin
+
+      FVolumePending := False;
+      FVolumeReadPending := False;
+      FBalancePending := False;
+      FBalanceReadPending := False;
+      FMainZonePending := False;
+      FZone2Pending := False;
+      FZoneReadPending := False;
+      FTonePending := False;
+      FBassPending := False;
+      FTreblePending := False;
+      FToneReadPending := False;
+      VolumeTimer.Enabled := False;
+      FStatus.Caption := 'Receiver unavailable at ' + Host + ':23. ' +
+                         'Status read skipped. Check power, IP and Network Control; ' +
+                         'click Read status to retry.';
+      lblStreamInfo.Caption := FStatus.Caption;
+      memFLog.Lines.Add('! ' + FStatus.Caption + ' ' + ErrorText);
+
+      if FReceiverCheckDiscover then
+        BeginDiscovery(True, ReadAll);
+      Exit;
+    end;
+
+  FStatus.Caption := 'Receiver available. Reading settings ...';
+  lblStreamInfo.Caption := FStatus.Caption;
   FVolumeReadPending := True;
   FBalanceReadPending := True;
   FZoneReadPending := True;
   FToneReadPending := True;
+  // The timer also leaves time for the receiver to release the probe socket.
   VolumeTimer.Enabled := True;
-  VolumeTick(nil);
+
+  if ReadAll then
+    StartRequest(['PW?', 'ZM?', 'Z2?', 'MV?', 'MU?', 'SI?']);
 end;
 
 
@@ -856,6 +991,14 @@ var
 
 begin
 
+
+  if Assigned(FReceiverCheck) then
+    begin
+
+      FReceiverCheck.Terminate;
+      FReceiverCheck.WaitFor;
+      FreeAndNil(FReceiverCheck);
+    end;
   if Assigned(StreamActionTimer) then
     StreamActionTimer.Enabled := False;
 
@@ -1128,6 +1271,8 @@ var
 
 begin
 
+  CompleteReceiverCheck();
+
   UpdatePlaybackProgress();
   if Assigned(FLoopback) and FLoopback.Ready then
     begin
@@ -1215,16 +1360,28 @@ end;
 procedure THEOSForm.FindHEOSDEviceClick(Sender: TObject);
 begin
 
-  if not edHost.Enabled then
+  BeginDiscovery(False, False);
+end;
+
+
+procedure THEOSForm.BeginDiscovery(Reconnect: Boolean; ReadAll: Boolean);
+begin
+
+  if not edHost.Enabled or Assigned(FReceiverCheck) then
     Exit;
 
   if Assigned(FDiscovery) and not FDiscovery.Finished then
     Exit;
 
   FreeAndNil(FDiscovery);
+  FDiscoveryComplete := False;
+  FDiscoveryReconnect := Reconnect;
+  FDiscoveryReadAll := ReadAll;
   btnFindHEOSDevice.Enabled := False;
   btnFindHEOSDevice.Caption := 'Searching ...';
   FStatus.Caption := 'Searching local network interfaces for HEOS devices ...';
+  lblStreamInfo.Caption := FStatus.Caption;
+  memFLog.Lines.Add(FStatus.Caption);
   FDiscovery := THEOSDiscovery.Create;
   FDiscovery.OnTerminate := DiscoveryFinished;
   FDiscovery.Start;
@@ -1235,46 +1392,69 @@ procedure THEOSForm.DiscoveryFinished(Sender: TObject);
 var
   I: Integer;
   Selected: Integer;
+  ReceiverCount: Integer;
+  ReceiverIndex: Integer;
+  Description: string;
 
 begin
 
+  FDiscoveryComplete := True;
   FDevices := Copy(FDiscovery.Devices);
   cbxHEOSDevices.Items.Clear();
   Selected := -1;
+  ReceiverCount := 0;
+  ReceiverIndex := -1;
 
   for I := 0 to Length(FDevices) - 1 do
     begin
-      cbxHEOSDevices.Items.Add(FDevices[I].Name + ' - ' + FDevices[I].Address);
 
-      if (FDevices[I].Address = Trim(edHost.Text)) then
-        Selected := I;
+      Description := FDevices[I].Name + ' - ' + FDevices[I].Address;
+      if FDevices[I].AvrAvailable then
+        begin
 
-      memFLog.Lines.Add('Found device: ' + FDevices[I].Name + ' (' +
-                      FDevices[I].Model + ') ' + FDevices[I].Address);
+          Inc(ReceiverCount);
+          ReceiverIndex := I;
+          if (FDevices[I].Address = Trim(edHost.Text)) then
+            Selected := I;
+        end
+      else
+        Description := Description + ' (HEOS only; AVR control unavailable)';
+
+      cbxHEOSDevices.Items.Add(Description);
+      memFLog.Lines.Add('Found HEOS device: ' + Description + ' (' +
+                        FDevices[I].Model + ')');
     end;
 
-  if (Length(FDevices) = 1) then
-    Selected := 0;
+  if (ReceiverCount = 1) then
+    Selected := ReceiverIndex;
 
   cbxHEOSDevices.Visible := Length(FDevices) > 0;
   cbxHEOSDevices.ItemIndex := Selected;
+  btnFindHEOSDevice.Caption := 'Find HEOS';
+  btnFindHEOSDevice.Enabled := True;
 
-  if Selected >= 0 then
-    HEOSDeviceChange(cbxHEOSDevices);
+  if (Selected >= 0) then
+    begin
+
+      HEOSDeviceChange(cbxHEOSDevices);
+      Exit;
+    end;
 
   if (FDiscovery.ErrorText <> '') then
     FStatus.Caption := 'Discovery: ' + FDiscovery.ErrorText
   else
-    if Length(FDevices) = 0 then
-      FStatus.Caption := 'No device replied. Check the receiver is on the same LAN; the IP can still be entered manually.'
+    if (Length(FDevices) = 0) then
+      FStatus.Caption := 'No HEOS device replied. Check power, Network Control and the local network; enter the IP or click Read status to retry.'
     else
-      if (Selected < 0) then
-        FStatus.Caption := 'Several Denon devices found. Select the receiver in the list above.'
+      if (ReceiverCount = 0) then
+        FStatus.Caption := 'HEOS devices found, but AVR control is unavailable. Check receiver Network Control and power.'
       else
-        FStatus.Caption := 'Device found. Receiver IP updated to ' + edHost.Text;
+        FStatus.Caption := 'Several HEOS receivers found. Select the receiver in the list above.';
 
-  btnFindHEOSDevice.Caption := 'Find Denon';
-  btnFindHEOSDevice.Enabled := True;
+  lblStreamInfo.Caption := FStatus.Caption;
+  memFLog.Lines.Add(FStatus.Caption);
+  if (ReceiverCount = 0) then
+    FDiscoveryReconnect := False;
 end;
 
 
@@ -1285,8 +1465,30 @@ var
 begin
 
   Index := cbxHEOSDevices.ItemIndex;
-  if edHost.Enabled and (Index >= 0) and (Index < Length(FDevices)) then
-    edHost.Text := FDevices[Index].Address;
+  if not edHost.Enabled or (Index < 0) or (Index >= Length(FDevices)) then
+    Exit;
+
+  if not FDevices[Index].AvrAvailable then
+    begin
+
+      FStatus.Caption := 'This HEOS device has no reachable AVR control port. Receiver IP was not changed.';
+      lblStreamInfo.Caption := FStatus.Caption;
+      memFLog.Lines.Add(FStatus.Caption);
+      Exit;
+    end;
+
+  edHost.Text := FDevices[Index].Address;
+  FStatus.Caption := 'HEOS receiver found. Receiver IP updated to ' + edHost.Text;
+  lblStreamInfo.Caption := FStatus.Caption;
+  memFLog.Lines.Add(FStatus.Caption);
+
+  if FDiscoveryReconnect then
+    begin
+
+      FDiscoveryReconnect := False;
+      // One recovery attempt; a receiver disappearing must not cause a scan loop.
+      BeginReceiverCheck(FDiscoveryReadAll, False);
+    end;
 end;
 
 
@@ -2162,6 +2364,13 @@ var
 
 begin
 
+  if Assigned(FReceiverCheck) or FDiscoveryReconnect then
+    begin
+
+      VolumeTimer.Enabled := False;
+      Exit;
+    end;
+
   if not ReceiverActionsPending() then
     begin
       VolumeTimer.Enabled := False;
@@ -2278,14 +2487,7 @@ begin
 
   case TComponent(Sender).Tag of
     0: begin
-         FToneReadPending := True;
-         VolumeTimer.Enabled := True;
-         StartRequest(['PW?',
-                       'ZM?',
-                       'Z2?',
-                       'MV?',
-                       'MU?',
-                       'SI?']);
+         BeginReceiverCheck(True);
          Exit;
        end;
     1: begin
