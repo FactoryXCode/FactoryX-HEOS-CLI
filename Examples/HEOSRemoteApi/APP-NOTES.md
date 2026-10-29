@@ -42,7 +42,7 @@ tests the VCL buttons against a localhost receiver simulator on port 23.
 
 ## Playlist editor, fast file browser and Denon discovery
 
-Click **Find Denon** to discover receivers on the local IPv4 interfaces using
+Click **Find HEOS device** to discover receivers on the local IPv4 interfaces using
 SSDP. A device's UPnP description is checked for Denon before accepting it.
 A single result fills `MainForm.edHost.Text` automatically. When several
 devices reply, choose one from the list at the top; the current receiver is
@@ -191,7 +191,7 @@ adapted units. The source MfPack tree is read only; it is not changed by this pr
 
 ## Validation
 
-Built with the installed Delphi XE7 Win32 compiler (28.0).
+Built the application with your Delphi Win32/Win64 compiler.
 Automated checks passed for:
 
 - VCL DFM loading and streaming event bindings without starting capture;
