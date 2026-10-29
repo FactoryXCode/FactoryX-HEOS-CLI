@@ -1,10 +1,11 @@
 ﻿# HEOS Remote API sample
 
-The complete HEOS Remote VCL application using the repository's HEOS CLI and AVR APIs. 
-Copied from the working application with its DFM forms, TDn controls, playlist editor, RDJ Pro playlist import, file browser, file streaming and Windows audio streaming.
+The complete HEOS Remote VCL application use the repository's both HEOS CLI and AVR APIs. 
+The application contains a playlist editor (including RDJ Pro playlist import), a file browser, file streaming, playlist and Windows (loopback) audio streaming.
 
 `Heos.pas` adapts the existing background playback requests and progress monitor to `THeosClient`, `THeosCommands` and parsed `THeosMessage` replies/events. 
-It selects the player by receiver IP and uses the single-player fallback only when unambiguous. Commands use the API's parameter encoding and request IDs.
+It selects the player by receiver IP and uses the single-player fallback only when unambiguous.
+Commands use the API's parameter encoding and request IDs.
 
 `HEOSTransport.pas` adapts receiver requests to `TAvrClient` and typed `TAvrCommands`, retaining the form's existing queue and confirmation handling. 
 The channel-list query uses the API's raw extension and waits for `CVEND`. 
