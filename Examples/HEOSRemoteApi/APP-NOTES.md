@@ -1,4 +1,4 @@
-# Denon Remote - Delphi XE7 VCL
+# Denon Remote - Delphi VCL application
 
 Receiver controls, music-file playback and live Windows sound for the
 Denon AVR-X2700H DAB. No Indy, BASS, FFmpeg or extra audio DLLs.
