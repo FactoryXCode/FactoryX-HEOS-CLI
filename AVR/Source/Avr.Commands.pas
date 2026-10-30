@@ -37,6 +37,7 @@
 //
 // =============================================================================
 // Source: FactoryX.Code - RDJ Pro
+//         HARMAN International (Denon.com)
 // =============================================================================
 //
 // LICENSE
@@ -104,8 +105,9 @@ type
     DelayMs: Integer;
 
     class function Raw(const AText: string;
-                          const AReplyPrefix: string;
-                          const AExpectedValue: string = ''): TAvrCommand; static;
+                       const AReplyPrefix: string;
+                       const AExpectedValue: string = ''): TAvrCommand; static;
+
     procedure Validate();
   end;
 
@@ -113,8 +115,8 @@ type
   private
 
     class function Make(const AText: string;
-                           AKind: TAvrValueKind;
-                           const AExpected: string = ''): TAvrCommand; static;
+                        AKind: TAvrValueKind;
+                        const AExpected: string = ''): TAvrCommand; static;
 
   public
 
@@ -127,20 +129,20 @@ type
     class function GetVolume(AZone2: Boolean = False): TAvrCommand; static;
     
     class function SetVolume(ALevel: Double;
-                               AZone2: Boolean = False): TAvrCommand; static;
+                             AZone2: Boolean = False): TAvrCommand; static;
     
     class function ChangeVolume(AUp: Boolean;
-                                  AZone2: Boolean = False): TAvrCommand; static;
+                                AZone2: Boolean = False): TAvrCommand; static;
     
     class function GetMute(AZone2: Boolean = False): TAvrCommand; static;
     
     class function SetMute(AEnabled: Boolean;
-                             AZone2: Boolean = False): TAvrCommand; static;
+                           AZone2: Boolean = False): TAvrCommand; static;
     
     class function GetInput(AZone2: Boolean = False): TAvrCommand; static;
     
     class function SetInput(const AInput: string;
-                              AZone2: Boolean = False): TAvrCommand; static;
+                            AZone2: Boolean = False): TAvrCommand; static;
     
     class function GetFrontLeft(): TAvrCommand; static;
     class function GetFrontRight(): TAvrCommand; static;
@@ -148,8 +150,8 @@ type
     class function SetFrontRight(ADb: Double): TAvrCommand; static;
     
     class function SetBalance(ADb: Double;
-                                ALeftBaseDb: Double = 0;
-                                ARightBaseDb: Double = 0): TArray<TAvrCommand>; static;
+                              ALeftBaseDb: Double = 0;
+                              ARightBaseDb: Double = 0): TArray<TAvrCommand>; static;
     
     class function GetToneControl(): TAvrCommand; static;
     class function SetToneControl(AEnabled: Boolean): TAvrCommand; static;
@@ -169,7 +171,8 @@ type
                         AMinimum: Double;
                         AMaximum: Double): string;
   
-  function TryAvrLevel(const AText: string; out ALevel: Double): Boolean;
+  function TryAvrLevel(const AText: string;
+                       out ALevel: Double): Boolean;
 
 
 implementation
@@ -212,8 +215,8 @@ end;
 
 
 function AvrLevelText(ALevel: Double;
-                        AMinimum: Double;
-                        AMaximum: Double): string;
+                      AMinimum: Double;
+                      AMaximum: Double): string;
 var
   HalfSteps: Integer;
 
@@ -227,7 +230,8 @@ begin
   if (Abs(HalfSteps - ALevel * 2) > 0.000001) then
     raise EArgumentException.Create('AVR levels must use 0.5 steps.');
 
-  Result := Format('%.2d', [HalfSteps div 2]);
+  Result := Format('%.2d',
+                   [HalfSteps div 2]);
   
   if Odd(HalfSteps) then
     Result := Result + '5';
@@ -264,8 +268,10 @@ procedure TAvrCommand.Validate();
 begin
 
   CheckAscii(Text);
-  CheckAscii(ExpectedValue, True);
-  CheckAscii(ExpectedPrefix, True);
+  CheckAscii(ExpectedValue,
+             True);
+  CheckAscii(ExpectedPrefix,
+             True);
   
   if (ReplyKind = avUnknown) and (ExpectedPrefix = '') then
     raise EArgumentException.Create('A raw AVR command requires a reply prefix.');
@@ -302,6 +308,7 @@ begin
   
   if (AText = 'PWON') or (AText = 'ZMON') or (AText = 'Z2ON') then
     Result.DelayMs := 1000;
+
   Result.Validate();
 end;
 
@@ -309,7 +316,8 @@ end;
 class function TAvrCommands.GetPower(): TAvrCommand;
 begin
 
-  Result := Make('PW?', avPower);
+  Result := Make('PW?',
+                 avPower);
 end;
 
 
@@ -322,28 +330,34 @@ begin
   Value := 'STANDBY';
   if AEnabled then
     Value := 'ON';
-  Result := Make('PW' + Value, avPower, Value);
+  Result := Make('PW' + Value,
+                 avPower,
+                 Value);
 end;
 
 
 class function TAvrCommands.GetMainZonePower(): TAvrCommand;
 begin
 
-  Result := Make('ZM?', avMainZonePower);
+  Result := Make('ZM?',
+                 avMainZonePower);
 end;
 
 
 class function TAvrCommands.SetMainZonePower(AEnabled: Boolean): TAvrCommand;
 begin
 
-  Result := Make('ZM' + OnOff(AEnabled), avMainZonePower, OnOff(AEnabled));
+  Result := Make('ZM' + OnOff(AEnabled),
+                 avMainZonePower,
+                 OnOff(AEnabled));
 end;
 
 
 class function TAvrCommands.GetZone2Power(): TAvrCommand;
 begin
 
-  Result := Make('Z2?', avZone2Power);
+  Result := Make('Z2?',
+                 avZone2Power);
 end;
 
 
@@ -458,16 +472,25 @@ begin
 
   Value := UpperCase(Trim(AInput));
   CheckAscii(Value);
-  if (Pos('?', Value) > 0) or CharInSet(Value[1], ['0'..'9']) or
-     (Value = 'ON') or (Value = 'OFF') or StartsText('MU', Value) then
+
+  if (Pos('?',
+          Value) > 0) or
+     CharInSet(Value[1],
+               ['0'..'9']) or
+     (Value = 'ON') or
+     (Value = 'OFF') or
+     StartsText('MU',
+                Value) then
     raise EArgumentException.Create('Invalid AVR input token.');
 
   if AZone2 then
     Result := Make('Z2' + Value,
-                   avZone2Input, Value)
+                   avZone2Input,
+                   Value)
   else
     Result := Make('SI' + Value,
-                   avInput, Value);
+                   avInput,
+                   Value);
 end;
 
 
@@ -498,7 +521,8 @@ begin
                         62);
                         
   Result := Make('CVFL ' + Value,
-                 avFrontLeft, Value);
+                 avFrontLeft,
+                 Value);
 end;
 
 
@@ -513,7 +537,8 @@ begin
                         62);
                         
   Result := Make('CVFR ' + Value,
-                 avFrontRight, Value);
+                 avFrontRight,
+                 Value);
 end;
 
 
@@ -526,12 +551,21 @@ var
 
 begin
 
-  AvrLevelText(12 + ADb, 0, 24);
-  AvrLevelText(50 + ALeftBaseDb, 38, 62);
-  AvrLevelText(50 + ARightBaseDb, 38, 62);
+  AvrLevelText(12 + ADb,
+               0,
+               24);
+
+  AvrLevelText(50 + ALeftBaseDb,
+               38,
+               62);
+
+  AvrLevelText(50 + ARightBaseDb,
+               38,
+               62);
+
   Left := ALeftBaseDb;
   Right := ARightBaseDb;
-  
+
   if (ADb > 0) then
     Left := Left - ADb
   else
@@ -690,12 +724,15 @@ begin
   Result.RawText := Trim(ALine);
   
   for i := 0 to High(Prefixes) do
-    if StartsStr(Prefixes[i], Result.RawText) then
+    if StartsStr(Prefixes[i],
+                 Result.RawText) then
       begin
 
         Prefix := Prefixes[i];
         Result.Kind := Kinds[i];
-        Result.Value := Copy(Result.RawText, Length(Prefix) + 1, MaxInt);
+        Result.Value := Copy(Result.RawText,
+                             Length(Prefix) + 1,
+                             MaxInt);
         Break;
       end;
 
@@ -709,13 +746,14 @@ begin
           Result.Kind := avZone2Volume;
     end;
 
-  if Result.Kind in [avPower, avMainZonePower, avZone2Power, avMute,
-                       avZone2Mute, avToneControl, avDynamicEq] then
+  if Result.Kind in [avPower, avMainZonePower, avZone2Power, avMute, avZone2Mute, avToneControl, avDynamicEq] then
     begin
 
       Result.HasSwitch := (Result.Value = 'ON') or (Result.Value = 'OFF') or
                           ((Result.Kind = avPower) and (Result.Value = 'STANDBY'));
+
       Result.Enabled := (Result.Value = 'ON');
+
       if not Result.HasSwitch then
         Result.Kind := avUnknown;
     end;
@@ -730,20 +768,18 @@ begin
 
           case Result.Kind of
             avFrontLeft,
-            avFrontRight:
-              begin
-                Result.HasNumber := (Level >= 38) and (Level <= 62);
-                Level := Level - 50;
-              end;
+            avFrontRight: begin
+                            Result.HasNumber := (Level >= 38) and (Level <= 62);
+                            Level := Level - 50;
+                          end;
               
             avBass,
-            avTreble:
-              begin
-                Result.HasNumber := (Level >= 44) and (Level <= 56) and (Frac(Level) = 0);
-                Level := Level - 50;
-              end;
-          else
-            Result.HasNumber := (Level <= 98);
+            avTreble:     begin
+                            Result.HasNumber := (Level >= 44) and (Level <= 56) and (Frac(Level) = 0);
+                            Level := Level - 50;
+                          end;
+            else
+              Result.HasNumber := (Level <= 98);
           end;
           
           Result.Number := Level;

@@ -36,7 +36,8 @@
 // Todo: -
 //
 // =============================================================================
-// Source: FactoryX.Code - RDJ Pro
+// Source: FactoryX.Code
+//         HARMAN International (HEOS_CLI_ProtocolSpecification-Version-1.17)
 // =============================================================================
 //
 // LICENSE

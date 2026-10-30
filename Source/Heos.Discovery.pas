@@ -24,7 +24,7 @@
 // 24/08/2026 All                 Moby release  SDK 10.0.28000.2705  (Windows 11)
 //------------------------------------------------------------------------------
 //
-// Remarks: Requires Windows 10 22H2 or higher.
+// Remarks: Requires Windows 10 or higher.
 //          Please, read documentation carefully!
 //
 // Related objects: -
@@ -38,6 +38,7 @@
 //
 // =============================================================================
 // Source: FactoryX.Code.
+//         HARMAN International (HEOS_CLI_ProtocolSpecification-Version-1.17)
 // =============================================================================
 //
 // LICENSE
@@ -71,6 +72,7 @@ uses
   System.SysUtils;
 
 type
+
   THEOSDevice = record
     Address: string;
     Name: string;
@@ -97,6 +99,7 @@ type
                                 const Address: string;
                                 out Device: THEOSDevice): Boolean;
 
+
 implementation
 
 uses
@@ -120,52 +123,87 @@ begin
     Exit;
 
   for Line in Response.Split([#10]) do
-    if StartsText('LOCATION:', Trim(Line)) then
-      Exit(Trim(Copy(Trim(Line), 10, MaxInt)));
+    if StartsText('LOCATION:',
+                  Trim(Line)) then
+      Exit(Trim(Copy(Trim(Line),
+                10,
+                MaxInt)));
 end;
+
 
 function XmlText(const Xml, Tag: string): string;
 var
   StartAt: Integer;
   EndAt: Integer;
   Lower: string;
+
 begin
 
   Result := '';
   Lower := LowerCase(Xml);
-  StartAt := Pos('<' + LowerCase(Tag) + '>', Lower);
-  if StartAt = 0 then
+
+  StartAt := Pos('<' + LowerCase(Tag) + '>',
+                 Lower);
+
+  if (StartAt = 0) then
     Exit;
 
-  Inc(StartAt, Length(Tag) + 2);
-  EndAt := PosEx('</' + LowerCase(Tag) + '>', Lower, StartAt);
-  if EndAt <= StartAt then
+  Inc(StartAt,
+      Length(Tag) + 2);
+
+  EndAt := PosEx('</' + LowerCase(Tag) + '>',
+                 Lower,
+                 StartAt);
+
+  if (EndAt <= StartAt) then
     Exit;
 
-  Result := Trim(Copy(Xml, StartAt, EndAt - StartAt));
-  Result := StringReplace(Result, '&amp;', '&', [rfReplaceAll]);
-  Result := StringReplace(Result, '&lt;', '<', [rfReplaceAll]);
-  Result := StringReplace(Result, '&gt;', '>', [rfReplaceAll]);
+  Result := Trim(Copy(Xml,
+                      StartAt,
+                      EndAt - StartAt));
+
+  Result := StringReplace(Result,
+                          '&amp;',
+                          '&',
+                          [rfReplaceAll]);
+
+  Result := StringReplace(Result,
+                          '&lt;',
+                          '<',
+                          [rfReplaceAll]);
+
+  Result := StringReplace(Result,
+                          '&gt;',
+                          '>',
+                          [rfReplaceAll]);
 end;
 
+
 function ParseHEOSDescription(const Xml: string;
-                               const Address: string;
-                               out Device: THEOSDevice): Boolean;
+                              const Address: string;
+                              out Device: THEOSDevice): Boolean;
 var
   Description: string;
+
 begin
 
   Device := Default(THEOSDevice);
   Description := LowerCase(Xml);
   Device.Model := XmlText(Xml, 'modelName');
+
   Result := IPv4Valid(Address) and
-            (Pos('urn:schemas-denon-com:device:act-denon:1', Description) > 0);
+            (Pos('urn:schemas-denon-com:device:act-denon:1',
+                 Description) > 0);
+
   if not Result then
     Exit;
 
   Device.Address := Address;
-  Device.Name := XmlText(Xml, 'friendlyName');
-  if Device.Name = '' then
+
+  Device.Name := XmlText(Xml,
+                         'friendlyName');
+
+  if (Device.Name = '') then
     Device.Name := Device.Model;
 end;
 
@@ -189,8 +227,10 @@ begin
                           nil,
                           nil,
                           0);
+
   if (Session = nil) then
     Exit;
+
   try
     Clock := TStopwatch.StartNew;
     Timeout := 1200;
@@ -263,12 +303,14 @@ begin
   end;
 end;
 
+
 constructor THEOSDiscovery.Create();
 begin
 
   inherited Create(True);
   FreeOnTerminate := False;
 end;
+
 
 procedure THEOSDiscovery.Execute();
 const
@@ -332,7 +374,8 @@ begin
       Group.sin_addr.S_addr := inet_addr('239.255.255.250');
 
       I := 0;
-      while Entry.h_addr_list[I] <> nil do
+
+      while (Entry.h_addr_list[I] <> nil) do
         begin
           Local := PInAddr(Entry.h_addr_list[I])^;
           Inc(I);
@@ -397,55 +440,56 @@ begin
                                20) then
               Continue;
 
-          PeerSize := SizeOf(Peer);
+            PeerSize := SizeOf(Peer);
 
-          N := recvfrom(S,
-                        Buffer,
-                        SizeOf(Buffer),
-                        0,
-                        Peer,
-                        PeerSize);
+            N := recvfrom(S,
+                          Buffer,
+                          SizeOf(Buffer),
+                          0,
+                          Peer,
+                          PeerSize);
 
-          if (N <= 0) then
-            Continue;
+            if (N <= 0) then
+              Continue;
 
-          SetString(Response,
-                    Buffer,
-                    N);
+            SetString(Response,
+                      Buffer,
+                      N);
 
-          Location := SsdpLocation(string(Response));
-          Address := string(AnsiString(inet_ntoa(Peer.sin_addr)));
+            Location := SsdpLocation(string(Response));
+            Address := string(AnsiString(inet_ntoa(Peer.sin_addr)));
 
-          // Follow only an HTTP description hosted by the responding device.
-          if not StartsText('http://', Location) then
-            Continue;
+            // Follow only an HTTP description hosted by the responding device.
+            if not StartsText('http://',
+                              Location) then
+              Continue;
 
-          Authority := Copy(Location,
-                            8,
-                            MaxInt);
+            Authority := Copy(Location,
+                              8,
+                              MaxInt);
 
-          N := Pos('/',
-                   Authority);
+            N := Pos('/',
+                     Authority);
 
-          if (N > 0) then
-            SetLength(Authority,
-                      N - 1);
+            if (N > 0) then
+              SetLength(Authority,
+                        N - 1);
 
-          N := Pos(':',
-                   Authority);
+            N := Pos(':',
+                     Authority);
 
-          if (N > 0) then
-            SetLength(Authority,
-                      N - 1);
+            if (N > 0) then
+              SetLength(Authority,
+                        N - 1);
 
-          if (Authority <> Address) or (Locations.Count >= 32) then
-            Continue;
+            if (Authority <> Address) or (Locations.Count >= 32) then
+              Continue;
 
-          if (Locations.IndexOf(Location) < 0) then
-            begin
-              Locations.Add(Location);
-              Addresses.Add(Address);
-            end;
+            if (Locations.IndexOf(Location) < 0) then
+              begin
+                Locations.Add(Location);
+                Addresses.Add(Address);
+              end;
           end;
 
       for I := 0 to Locations.Count - 1 do
@@ -456,25 +500,35 @@ begin
 
           if (Known.IndexOf(Address) >= 0) then
             Continue;
+
           Xml := FetchDescription(Locations[I]);
 
           if ParseHEOSDescription(Xml,
-                                   Address,
-                                   Device) and
-             ProbeReceiver(Address, 1255, 800, ErrorText) then
-        begin
-          Known.Add(Address);
-          SetLength(FDevices, Length(FDevices) + 1);
-          FDevices[High(FDevices)] := Device;
+                                  Address,
+                                  Device) and
+             ProbeReceiver(Address,
+                           1255,
+                           800,
+                           ErrorText) then
+            begin
+              Known.Add(Address);
+
+              SetLength(FDevices,
+                        Length(FDevices) + 1);
+
+              FDevices[High(FDevices)] := Device;
+            end;
         end;
-        end;
+
     except
       on E: Exception do
         FError := E.Message;
     end;
+
   finally
     for S in Sockets do
       closesocket(S);
+
     Known.Free;
     Locations.Free;
     Addresses.Free;

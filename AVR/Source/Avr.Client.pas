@@ -36,7 +36,8 @@
 // Todo: -
 //
 // =============================================================================
-// Source: FactoryX.Code - RDJ Pro
+// Source: FactoryX.Code
+//         HARMAN International (Denon.com)
 // =============================================================================
 //
 // LICENSE
@@ -201,7 +202,7 @@ function GetTickCount64: UInt64; stdcall; external 'kernel32.dll';
 
 constructor TAvrClient.Create(const AHost: string;
                               APort: Word;
-                             AConnectTimeoutMs: Integer);
+                              AConnectTimeoutMs: Integer);
 begin
 
   inherited Create;
@@ -219,7 +220,8 @@ begin
   
   FWake := TEvent.Create(nil,
                          False,
-                         False, '');
+                         False,
+                         '');
                          
   FPending := TQueue<TAvrPending>.Create;
   FMessages := TQueue<TAvrMessage>.Create;
@@ -264,6 +266,7 @@ begin
 
   if (AValue < 100) or (AValue > 60000) then
     raise EArgumentOutOfRangeException.Create('AVR reply timeout must be 100 to 60000 ms.');
+
   FTimeoutMs := AValue;
 end;
 
@@ -494,11 +497,20 @@ begin
       try
 
         case Message.Kind of
-          amReply: if Assigned(FOnReply) then FOnReply(Self, Message);
-          amEvent: if Assigned(FOnEvent) then FOnEvent(Self, Message);
-          amError: if Assigned(FOnError) then FOnError(Self, Message);
-          amConnection: if Assigned(FOnConnection) then FOnConnection(Self, Message);
+          amReply: if Assigned(FOnReply) then
+                     FOnReply(Self,
+                              Message);
+          amEvent: if Assigned(FOnEvent) then
+                     FOnEvent(Self,
+                              Message);
+          amError: if Assigned(FOnError) then
+                     FOnError(Self,
+                              Message);
+          amConnection: if Assigned(FOnConnection) then
+                          FOnConnection(Self,
+                                        Message);
         end;
+
       finally
 
         Message.Free;
@@ -550,21 +562,24 @@ begin
     begin
 
       FConnection := THeosConnection.Create(FOwner.FHost,
-                                              FOwner.FPort,
-                                              FOwner.FConnectTimeoutMs);
+                                            FOwner.FPort,
+                                            FOwner.FConnectTimeoutMs);
       FOwner.SetConnected(True);
     end;
 end;
 
 
-function TAvrWorker.ReadValue(ATimeout: Integer; out AValue: TAvrValue): Boolean;
+function TAvrWorker.ReadValue(ATimeout: Integer;
+                              out AValue: TAvrValue): Boolean;
 var
   Line: string;
   Message: TAvrMessage;
 
 begin
 
-  Line := Trim(FConnection.ReadLine(#13, ATimeout));
+  Line := Trim(FConnection.ReadLine(#13,
+                                    ATimeout));
+
   Result := (Line <> '');
   AValue := Default(TAvrValue);
   
@@ -579,7 +594,7 @@ begin
   if (AValue.Kind = avVolumeLimit) then
     FMaximumVolume := AValue.Number;
 
-  Message := TAvrMessage.Create;
+  Message := TAvrMessage.Create();
   Message.Kind := amEvent;
   Message.Value := AValue;
   FOwner.Post(Message);
@@ -600,8 +615,11 @@ begin
   if (ACommand.ReplyKind = avUnknown) then
     begin
 
-      Result := StartsStr(ACommand.ExpectedPrefix, AValue.RawText);
-      Value := Copy(AValue.RawText, Length(ACommand.ExpectedPrefix) + 1, MaxInt);
+      Result := StartsStr(ACommand.ExpectedPrefix,
+                          AValue.RawText);
+      Value := Copy(AValue.RawText,
+                    Length(ACommand.ExpectedPrefix) + 1,
+                    MaxInt);
       
       if (ACommand.ExpectedValue <> '') then
         Result := Result and (Value = ACommand.ExpectedValue);
@@ -650,7 +668,8 @@ begin
       
       // Deliver buffered notifications before sending the next request.
       while not Cancelled() and (GetTickCount64 < Deadline) do
-        if not ReadValue(10, Value) then
+        if not ReadValue(10,
+                         Value) then
           Break;
 
       while not Cancelled() and (GetTickCount64 < FNextSendAt) do
@@ -739,7 +758,8 @@ begin
 
               try
 
-                ReadValue(50, Value);
+                ReadValue(50,
+                          Value);
               except
 
                 on E: Exception do

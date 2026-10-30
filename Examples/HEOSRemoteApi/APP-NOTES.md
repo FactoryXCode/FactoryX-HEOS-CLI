@@ -1,8 +1,7 @@
-# HEOS Remote - Delphi VCL application
+# Denon Remote - Delphi XE7 VCL
 
-Receiver controls, music-file playback and live Windows sound for
-Denon and Marantz devices that supports HEOS / AVR protocols. 
-No Indy, BASS, FFmpeg or extra audio DLLs are needed.
+Receiver controls, music-file playback and live Windows sound for the
+Denon AVR-X2700H DAB. No Indy, BASS, FFmpeg or extra audio DLLs.
 
 ## Main volume
 
@@ -43,7 +42,7 @@ tests the VCL buttons against a localhost receiver simulator on port 23.
 
 ## Playlist editor, fast file browser and Denon discovery
 
-Click **Find HEOS device** to discover receivers on the local IPv4 interfaces using
+Click **Find Denon** to discover receivers on the local IPv4 interfaces using
 SSDP. A device's UPnP description is checked for Denon before accepting it.
 A single result fills `MainForm.edHost.Text` automatically. When several
 devices reply, choose one from the list at the top; the current receiver is
@@ -192,7 +191,7 @@ adapted units. The source MfPack tree is read only; it is not changed by this pr
 
 ## Validation
 
-Built the application with your Delphi Win32/Win64 compiler.
+Built with the installed Delphi XE7 Win32 compiler (28.0).
 Automated checks passed for:
 
 - VCL DFM loading and streaming event bindings without starting capture;
@@ -219,12 +218,3 @@ References:
 - Windows loopback: https://learn.microsoft.com/en-us/windows/win32/coreaudio/loopback-recording
 - Windows AAC encoder: https://learn.microsoft.com/en-us/windows/win32/medfound/aac-encoder
 
-Project: FactoryX - HEOS-CLI 
-Project location: FactoryXCode  
-  
-https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
-  
-First release date: 13/08/2026  
-Final release date: 29/10/2026  
-  
-Copyright © FactoryX. All rights reserved.

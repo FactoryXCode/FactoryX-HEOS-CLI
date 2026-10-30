@@ -24,7 +24,7 @@
 // 24/08/2026 All                 Moby release  SDK 10.0.28000.2705  (Windows 11)
 //------------------------------------------------------------------------------
 //
-// Remarks: Requires Windows 10 22H2 or higher.
+// Remarks: Requires Windows 10 or higher.
 //          Please, read documentation carefully!
 //
 // Related objects: -
@@ -38,6 +38,7 @@
 //
 // =============================================================================
 // Source: FactoryX.Code
+//         HARMAN International (HEOS_CLI_ProtocolSpecification-Version-1.17)
 // =============================================================================
 //
 // LICENSE
@@ -93,6 +94,7 @@ type
 
     property Handle: TSocket read FSocket;
   end;
+
 
   function SocketReady(S: TSocket;
                        Writing: Boolean;
@@ -453,6 +455,7 @@ begin
 
       if (Remaining <= 0) then
         begin
+
           // Keep partial replies for the next poll; TCP may split any line.
           Result := '';
           Exit;

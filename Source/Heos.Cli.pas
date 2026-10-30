@@ -36,7 +36,8 @@
 // Todo: -
 //
 // =============================================================================
-// Source: FactoryX.Code - RDJ Pro
+// Source: FactoryX.Code,
+//         HARMAN International (HEOS_CLI_ProtocolSpecification-Version-1.17)
 // =============================================================================
 //
 // LICENSE
@@ -65,11 +66,13 @@ interface
 
 uses
 
+  {System}
   System.Classes,
   System.SysUtils,
   System.JSON,
   System.SyncObjs,
   System.Generics.Collections,
+  {HEOS}
   Heos.Sockets;
 
 type
@@ -77,25 +80,25 @@ type
   EHeosProtocol = class(Exception);
 
   THeosMessageKind = (hmReply,
-                       hmEvent,
-                       hmProgress,
-                       hmError,
-                       hmConnection);
+                      hmEvent,
+                      hmProgress,
+                      hmError,
+                      hmConnection);
 
   THeosEventKind = (heUnknown,
-                     heSourcesChanged,
-                     hePlayersChanged,
-                     heGroupsChanged,
-                     hePlayerStateChanged,
-                     heNowPlayingChanged,
-                     heNowPlayingProgress,
-                     hePlaybackError,
-                     heQueueChanged,
-                     hePlayerVolumeChanged,
-                     heRepeatModeChanged,
-                     heShuffleModeChanged,
-                     heGroupVolumeChanged,
-                     heUserChanged);
+                    heSourcesChanged,
+                    hePlayersChanged,
+                    heGroupsChanged,
+                    hePlayerStateChanged,
+                    heNowPlayingChanged,
+                    heNowPlayingProgress,
+                    hePlaybackError,
+                    heQueueChanged,
+                    hePlayerVolumeChanged,
+                    heRepeatModeChanged,
+                    heShuffleModeChanged,
+                    heGroupVolumeChanged,
+                    heUserChanged);
 
   THeosParameter = record
     Name: string;
@@ -109,14 +112,18 @@ type
     FParameters: TArray<THeosParameter>;
 
   public
+
     class function Create(const Path: string): THeosCommand; static;
+
     procedure Add(const Name: string;
-                    const Value: string;
-                    Encoded: Boolean = False);
+                  const Value: string;
+                  Encoded: Boolean = False);
+
     function Parameter(const Name: string): string;
     function WireText(): string;
     property Path: string read FPath;
   end;
+
 
   THeosMessage = class
   private
@@ -240,11 +247,14 @@ type
     property OnConnection: THeosMessageEvent read FOnConnection write FOnConnection;
   end;
 
-function HeosEncode(const Value: string): string;
-function HeosDecode(const Value: string): string;
-function HeosParameter(const Name: string;
+  function HeosEncode(const Value: string): string;
+  function HeosDecode(const Value: string): string;
+
+  function HeosParameter(const Name: string;
                           const Value: string;
                           Encoded: Boolean = False): THeosParameter;
+
+  function GetTickCount64(): UInt64; stdcall;
 
 implementation
 
@@ -260,9 +270,8 @@ const
   MaximumFrameBytes = 16 * 1024 * 1024;
   MaximumPendingCommands = 256;
   MaximumNotifications = 4096;
+  Kernel32Lib = 'kernel32.dll';
 
-function GetTickCount64(): UInt64; stdcall;
-  external 'kernel32.dll' name 'GetTickCount64';
 
 function JsonText(Json: TJSONObject;
                     const Name: string): string;
@@ -272,6 +281,7 @@ var
 begin
 
   Value := Json.GetValue(Name);
+
   if Assigned(Value) then
     Result := Value.Value
   else
@@ -288,9 +298,11 @@ begin
 
   Result := '';
   Bytes := TEncoding.UTF8.GetBytes(Value);
+
   for Item in Bytes do
     if (Item < 32) or (Item > 126) or (Item in [37, 38, 61]) then
-      Result := Result + '%' + IntToHex(Item, 2)
+      Result := Result + '%' + IntToHex(Item,
+                                        2)
     else
       Result := Result + Char(Item);
 end;
@@ -307,16 +319,23 @@ var
 begin
 
   Input := UTF8Encode(Value);
-  SetLength(Bytes, Length(Input));
+
+  SetLength(Bytes,
+            Length(Input));
+
   I := 1;
   N := 0;
+
   while (I <= Length(Input)) do
     begin
-      if (Input[I] = '%') and (I + 2 <= Length(Input)) and
-         TryStrToInt('$' + string(Copy(Input, I + 1, 2)), Number) then
+      if (Input[I] = '%') and (I + 2 <= Length(Input)) and TryStrToInt('$' + string(Copy(Input,
+                                                                                         I + 1,
+                                                                                         2)),
+                                                                       Number) then
         begin
           Bytes[N] := Byte(Number);
-          Inc(I, 3);
+          Inc(I,
+              3);
         end
       else
         begin
@@ -325,7 +344,10 @@ begin
         end;
       Inc(N);
     end;
-  SetLength(Bytes, N);
+
+  SetLength(Bytes,
+            N);
+
   Result := TEncoding.UTF8.GetString(Bytes);
 end;
 
@@ -338,16 +360,16 @@ var
 begin
 
   Result := Value <> '';
+
   for Item in Value do
-    if not CharInSet(Item, ['a'..'z', 'A'..'Z', '0'..'9', '_']) and
-       not (AllowSlash and (Item = '/')) then
+    if not CharInSet(Item, ['a'..'z', 'A'..'Z', '0'..'9', '_']) and not (AllowSlash and (Item = '/')) then
       Exit(False);
 end;
 
 
 function HeosParameter(const Name: string;
-                          const Value: string;
-                          Encoded: Boolean): THeosParameter;
+                       const Value: string;
+                       Encoded: Boolean): THeosParameter;
 begin
 
   Result.Name := Name;
@@ -359,17 +381,17 @@ end;
 class function THeosCommand.Create(const Path: string): THeosCommand;
 begin
 
-  if not ValidName(Path, True) or (Pos('/', Path) <= 1) or
-     (Path[Length(Path)] = '/') then
+  if not ValidName(Path, True) or (Pos('/', Path) <= 1) or (Path[Length(Path)] = '/') then
     raise EArgumentException.Create('Invalid HEOS command path');
+
   Result.FPath := Path;
   Result.FParameters := nil;
 end;
 
 
 procedure THeosCommand.Add(const Name: string;
-                             const Value: string;
-                             Encoded: Boolean);
+                           const Value: string;
+                           Encoded: Boolean);
 var
   Count: Integer;
 
@@ -377,13 +399,24 @@ begin
 
   if not ValidName(Name, False) then
     raise EArgumentException.Create('Invalid HEOS parameter name');
-  if Encoded and ((Pos(#13, Value) > 0) or (Pos(#10, Value) > 0) or
-                 (Pos('&', Value) > 0) or (Pos('=', Value) > 0)) then
+
+  if Encoded and ((Pos(#13,
+                       Value) > 0) or (Pos(#10,
+                                           Value) > 0) or
+                 (Pos('&',
+                      Value) > 0) or (Pos('=',
+                                          Value) > 0)) then
     raise EArgumentException.Create('Encoded HEOS values contain unescaped delimiters');
+
   Count := Length(FParameters);
   FParameters := Copy(FParameters);
-  SetLength(FParameters, Count + 1);
-  FParameters[Count] := HeosParameter(Name, Value, Encoded);
+
+  SetLength(FParameters,
+            Count + 1);
+
+  FParameters[Count] := HeosParameter(Name,
+                                      Value,
+                                      Encoded);
 end;
 
 
@@ -394,10 +427,13 @@ var
 begin
 
   Result := '';
+
   for Item in FParameters do
-    if SameText(Item.Name, Name) then
+    if SameText(Item.Name,
+                Name) then
       begin
         Result := Item.Value;
+
         if Item.Encoded then
           Result := HeosDecode(Result);
         Exit;
@@ -412,19 +448,26 @@ var
 
 begin
 
-  if not ValidName(FPath, True) or (Pos('/', FPath) <= 1) then
+  if not ValidName(FPath,
+                   True) or (Pos('/',
+                                 FPath) <= 1) then
     raise EArgumentException.Create('Empty or invalid HEOS command');
+
   Result := 'heos://' + FPath;
   Separator := '?';
+
   for Item in FParameters do
     begin
       Result := Result + Separator + Item.Name + '=';
+
       if Item.Encoded then
         Result := Result + Item.Value
       else
         Result := Result + HeosEncode(Item.Value);
+
       Separator := '&';
     end;
+
   Result := Result + #13#10;
 end;
 
@@ -433,6 +476,7 @@ constructor THeosMessage.Create();
 begin
 
   inherited;
+
   FFields := TDictionary<string, string>.Create;
 end;
 
@@ -442,6 +486,7 @@ begin
 
   FRoot.Free;
   FFields.Free;
+
   inherited;
 end;
 
@@ -455,38 +500,62 @@ var
 
 begin
 
-  Result := THeosMessage.Create;
+  Result := THeosMessage.Create();
   try
     Value := TJSONObject.ParseJSONValue(Json);
+
     if not (Value is TJSONObject) then
       begin
         Value.Free;
         raise EHeosProtocol.Create('HEOS response is not a JSON object');
       end;
+
     Result.FRoot := TJSONObject(Value);
     Value := Result.FRoot.GetValue('heos');
+
     if not (Value is TJSONObject) then
       raise EHeosProtocol.Create('HEOS response has no valid header');
+
     Header := TJSONObject(Value);
-    Result.FCommand := Trim(JsonText(Header, 'command'));
-    Result.FResult := JsonText(Header, 'result');
-    Result.FMessage := JsonText(Header, 'message');
+
+    Result.FCommand := Trim(JsonText(Header,
+                                     'command'));
+
+    Result.FResult := JsonText(Header,
+                               'result');
+
+    Result.FMessage := JsonText(Header,
+                                'message');
+
     if (Result.FCommand = '') then
       raise EHeosProtocol.Create('HEOS response has no command');
+
     for Part in Result.FMessage.Split(['&']) do
       begin
         P := Pos('=', Part);
+
         if (P > 0) then
-          Result.FFields.AddOrSetValue(HeosDecode(Copy(Part, 1, P - 1)),
-                                      HeosDecode(Copy(Part, P + 1, MaxInt)));
+          Result.FFields.AddOrSetValue(HeosDecode(Copy(Part,
+                                                  1,
+                                                  P - 1)),
+                                       HeosDecode(Copy(Part,
+                                                  P + 1,
+                                                  MaxInt)));
       end;
+
     Result.Kind := hmReply;
-    if StartsText('event/', Result.FCommand) then
+
+    if StartsText('event/',
+                  Result.FCommand) then
       Result.Kind := hmEvent
-    else if (Result.FResult <> 'success') and (Result.FResult <> 'fail') then
-      raise EHeosProtocol.Create('HEOS response has no valid result')
-    else if (Pos('command under process', LowerCase(Result.FMessage)) > 0) then
-      Result.Kind := hmProgress;
+    else
+      if (Result.FResult <> 'success') and (Result.FResult <> 'fail') then
+        raise EHeosProtocol.Create('HEOS response has no valid result')
+      else
+        if (Pos('command under process',
+                LowerCase(Result.FMessage)) > 0) then
+          Result.Kind := hmProgress;
+
   except
     Result.Free;
     raise;
@@ -511,19 +580,21 @@ end;
 
 
 function THeosMessage.Parameter(const Name: string;
-                                 const Default: string): string;
+                                const Default: string): string;
 begin
 
-  if not FFields.TryGetValue(Name, Result) then
+  if not FFields.TryGetValue(Name,
+                             Result) then
     Result := Default;
 end;
 
 
 function THeosMessage.IntegerParameter(const Name: string;
-                                        Default: Int64): Int64;
+                                       Default: Int64): Int64;
 begin
 
-  if not TryStrToInt64(Parameter(Name), Result) then
+  if not TryStrToInt64(Parameter(Name),
+                       Result) then
     Result := Default;
 end;
 
@@ -548,19 +619,19 @@ function THeosMessage.GetEventKind(): THeosEventKind;
 const
 
   Names: array[THeosEventKind] of string = ('',
-    'event/sources_changed',
-    'event/players_changed',
-    'event/groups_changed',
-    'event/player_state_changed',
-    'event/player_now_playing_changed',
-    'event/player_now_playing_progress',
-    'event/player_playback_error',
-    'event/player_queue_changed',
-    'event/player_volume_changed',
-    'event/repeat_mode_changed',
-    'event/shuffle_mode_changed',
-    'event/group_volume_changed',
-    'event/user_changed');
+                                            'event/sources_changed',
+                                            'event/players_changed',
+                                            'event/groups_changed',
+                                            'event/player_state_changed',
+                                            'event/player_now_playing_changed',
+                                            'event/player_now_playing_progress',
+                                            'event/player_playback_error',
+                                            'event/player_queue_changed',
+                                            'event/player_volume_changed',
+                                            'event/repeat_mode_changed',
+                                            'event/shuffle_mode_changed',
+                                            'event/group_volume_changed',
+                                            'event/user_changed');
 
 begin
 
@@ -590,7 +661,12 @@ begin
   FConnectTimeoutMs := ConnectTimeoutMs;
   FTimeoutMs := 15000;
   FLock := TCriticalSection.Create;
-  FWake := TEvent.Create(nil, False, False, '');
+
+  FWake := TEvent.Create(nil,
+                         False,
+                         False,
+                         '');
+
   FPending := TQueue<THeosPending>.Create;
   FMessages := TQueue<THeosMessage>.Create;
   FWorker := THeosWorker.Create(Self);
@@ -764,7 +840,7 @@ begin
 
   if Changed then
     begin
-      Message := THeosMessage.Create;
+      Message := THeosMessage.Create();
       Message.Kind := hmConnection;
 
       if Value then
@@ -810,7 +886,7 @@ begin
   FLock.Acquire;
 
   try
-    Result := FPending.Count > 0;
+    Result := (FPending.Count > 0);
 
   finally
     FLock.Release;
@@ -824,7 +900,7 @@ begin
   FLock.Acquire;
 
   try
-    Result := FPending.Count > 0;
+    Result := (FPending.Count > 0);
 
     if Result then
       Pending := FPending.Dequeue;
@@ -842,7 +918,8 @@ begin
   FLock.Acquire;
 
   try
-    Result := FMessages.Count > 0;
+    Result := (FMessages.Count > 0);
+
     if Result then
       Message := FMessages.Dequeue;
 
@@ -862,10 +939,13 @@ begin
 
   for I := 1 to Maximum do
     begin
+
       if not TakeMessage(Message) then
         Exit;
+
       try
         Handler := nil;
+
         case Message.Kind of
           hmReply: Handler := FOnReply;
           hmEvent: Handler := FOnEvent;
@@ -873,8 +953,11 @@ begin
           hmError: Handler := FOnError;
           hmConnection: Handler := FOnConnection;
         end;
+
         if Assigned(Handler) then
-          Handler(Self, Message);
+          Handler(Self,
+                  Message);
+
       finally
         Message.Free;
       end;
@@ -915,8 +998,10 @@ var
 
 begin
 
-  FConnection := THeosConnection.Create(FOwner.FHost, FOwner.FPort,
-                                          FOwner.FConnectTimeoutMs);
+  FConnection := THeosConnection.Create(FOwner.FHost,
+                                        FOwner.FPort,
+                                        FOwner.FConnectTimeoutMs);
+
   if Cancelled() then
     raise EHeosProtocol.Create('HEOS connection cancelled');
 
@@ -926,8 +1011,11 @@ begin
   if FSubscribed then
     begin
       Command := THeosCommand.Create('system/register_for_change_events');
-      Command.Add('enable', 'on');
-      Reply := Exchange(Command, 0);
+      Command.Add('enable',
+                  'on');
+
+      Reply := Exchange(Command,
+                        0);
 
       try
         if not Reply.Success then
@@ -972,6 +1060,7 @@ begin
   for I := 1 to Length(FBuffer) do
     begin
       Item := FBuffer[I];
+
       if InString then
         begin
           if Escaped then
@@ -993,13 +1082,19 @@ begin
            if (Item = '}') or (Item = ']') then
              begin
                Dec(Depth);
+
                if (Depth = 0) then
                  begin
                    if (I > MaximumFrameBytes) then
                      raise EHeosProtocol.Create('HEOS JSON frame exceeds 16 MB');
 
-                   Result := UTF8ToString(Copy(FBuffer, 1, I));
-                   Delete(FBuffer, 1, I);
+                   Result := UTF8ToString(Copy(FBuffer,
+                                               1,
+                                               I));
+
+                   Delete(FBuffer,
+                          1,
+                          I);
                    Exit;
                  end;
              end;
@@ -1022,11 +1117,18 @@ begin
   if (Result <> '') or Cancelled() then
     Exit;
 
-  if not SocketReady(FConnection.Handle, False, TimeoutMs) then
+  if not SocketReady(FConnection.Handle,
+                     False,
+                     TimeoutMs) then
     Exit;
 
-  Count := recv(FConnection.Handle, Buffer, SizeOf(Buffer), 0);
-  SocketCheck(Count, 'HEOS read');
+  Count := recv(FConnection.Handle,
+                Buffer,
+                SizeOf(Buffer),
+                0);
+
+  SocketCheck(Count,
+              'HEOS read');
 
   if (Count = 0) then
     raise EHeosProtocol.Create('HEOS connection closed');
@@ -1040,7 +1142,7 @@ end;
 
 
 function THeosWorker.Exchange(const Command: THeosCommand;
-                                Id: UInt64): THeosMessage;
+                              Id: UInt64): THeosMessage;
 var
   Timer: TStopwatch;
   Line: string;
@@ -1206,5 +1308,14 @@ begin
     CloseConnection();
   end;
 end;
+
+
+// External definitions
+
+{$WARN SYMBOL_PLATFORM OFF}
+
+function GetTickCount64; external Kernel32Lib name 'GetTickCount64' {$IF COMPILERVERSION > 20.0} delayed {$ENDIF};
+
+{$WARN SYMBOL_PLATFORM ON}
 
 end.

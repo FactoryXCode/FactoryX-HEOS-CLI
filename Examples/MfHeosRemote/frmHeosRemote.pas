@@ -37,6 +37,7 @@
 //
 // =============================================================================
 // Source: FactoryX.Code - RDJ Pro
+//         HARMAN International (HEOS_CLI_ProtocolSpecification-Version-1.17)
 // =============================================================================
 //
 // LICENSE
@@ -74,9 +75,13 @@ uses
   Vcl.StdCtrls,
   Vcl.ExtCtrls,
   Vcl.ComCtrls,
+  Vcl.Dialogs,
   {Application}
   Heos.Cli,
-  Heos.Commands;
+  Heos.Commands,
+  Heos.Discovery,
+  Heos.Sockets,
+  MfHeosAudioServer;
 
 type
 
@@ -89,6 +94,7 @@ type
     lblPlayer: TLabel;
     cbPlayers: TComboBox;
     btnRefresh: TButton;
+    btnFind: TButton;
     lblConnection: TLabel;
     grpPlayback: TGroupBox;
     btnPrevious: TButton;
@@ -99,6 +105,10 @@ type
     lblVolume: TLabel;
     tbVolume: TTrackBar;
     chkMute: TCheckBox;
+    grpFile: TGroupBox;
+    edAudioFile: TEdit;
+    btnBrowse: TButton;
+    dlgAudioFile: TOpenDialog;
     grpNowPlaying: TGroupBox;
     lblTitle: TLabel;
     lblArtist: TLabel;
@@ -114,6 +124,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
+    procedure btnFindClick(Sender: TObject);
     procedure btnDisconnectClick(Sender: TObject);
     procedure btnRefreshClick(Sender: TObject);
     procedure cbPlayersChange(Sender: TObject);
@@ -123,15 +134,32 @@ type
     procedure DispatchTimerTimer(Sender: TObject);
     procedure VolumeTimerTimer(Sender: TObject);
     procedure btnClearLogClick(Sender: TObject);
+    procedure btnBrowseClick(Sender: TObject);
 
   private
 
     FClient: THeosClient;
     FPlayerIds: TList<Int64>;
+    FPlayerAddresses: TList<string>;
+    FAudioServer: THeosAudioServer;
+    FFileRequest: UInt64;
+    FServingFile: string;
+    FFileNeedsStart: Boolean;
+    FPlayState: string;
     FUpdating: Boolean;
     FVolumePending: Boolean;
     FDesiredVolume: Integer;
     FVolumeRequest: UInt64;
+    FDiscovery: THeosDiscovery;
+    FDevices: TArray<THeosDevice>;
+    FSelectingDevice: Boolean;
+    FDiscoverPending: Boolean;
+    FAllowDiscovery: Boolean;
+
+    procedure PlaySelectedFile();
+    procedure StartDiscovery();
+    procedure CompleteDiscovery();
+    procedure ConnectToHost(AllowDiscovery: Boolean);
 
     function SelectedPlayer(out APlayerId: Int64): Boolean;
     procedure AddLog(const AText: string);
@@ -139,10 +167,17 @@ type
     procedure Disconnect();
     procedure RefreshPlayer();
     procedure LoadPlayers(APayload: TJSONValue);
-    procedure HandleReply(Sender: TObject; AMessage: THeosMessage);
-    procedure HandleEvent(Sender: TObject; AMessage: THeosMessage);
+
+    procedure HandleReply(Sender: TObject;
+                          AMessage: THeosMessage);
+
+    procedure HandleEvent(Sender: TObject;
+                          AMessage: THeosMessage);
     procedure HandleConnection(Sender: TObject; AMessage: THeosMessage);
-    procedure HandleError(Sender: TObject; AMessage: THeosMessage);
+
+    procedure HandleError(Sender: TObject;
+                          AMessage: THeosMessage);
+
     procedure ApplyVolume(ALevel: Integer);
   end;
 
@@ -154,7 +189,8 @@ implementation
 
 {$R *.dfm}
 
-function JsonText(AObject: TJSONObject; const AName: string): string;
+function JsonText(AObject: TJSONObject;
+                  const AName: string): string;
 var
   Value: TJSONValue;
 
@@ -181,7 +217,7 @@ begin
 
   Seconds := AMilliseconds div 1000;
   Result := Format('%.2d:%.2d:%.2d',
-                     [Seconds div 3600, (Seconds div 60) mod 60, Seconds mod 60]);
+                   [Seconds div 3600, (Seconds div 60) mod 60, Seconds mod 60]);
 end;
 
 
@@ -189,6 +225,8 @@ procedure TfrmHeosRemote.FormCreate(Sender: TObject);
 begin
 
   FPlayerIds := TList<Int64>.Create;
+  FPlayerAddresses := TList<string>.Create;
+  FFileNeedsStart := True;
   UpdateControls();
 end;
 
@@ -198,6 +236,7 @@ begin
 
   Disconnect();
   FPlayerIds.Free;
+  FPlayerAddresses.Free;
 end;
 
 
@@ -219,7 +258,8 @@ begin
   if (memLog.Lines.Count >= 300) then
     memLog.Clear;
 
-  memLog.Lines.Add(FormatDateTime('hh:nn:ss', Now) + '  ' + AText);
+  memLog.Lines.Add(FormatDateTime('hh:nn:ss',
+                                  Now) + '  ' + AText);
 end;
 
 
@@ -231,14 +271,21 @@ var
 begin
 
   Ready := False;
+
   if Assigned(FClient) then
     Ready := FClient.Connected and SelectedPlayer(PlayerId);
 
-  edHost.Enabled := not Assigned(FClient);
-  btnConnect.Enabled := not Assigned(FClient);
-  btnDisconnect.Enabled := Assigned(FClient);
+  edHost.Enabled := not Assigned(FClient) and not Assigned(FDiscovery);
+  btnConnect.Enabled := edHost.Enabled;
+
+  btnFind.Enabled := not Assigned(FDiscovery);
+
+  btnDisconnect.Enabled := Assigned(FClient) or Assigned(FDiscovery) or FSelectingDevice;
+
   btnRefresh.Enabled := Assigned(FClient);
-  cbPlayers.Enabled := Assigned(FClient) and (FPlayerIds.Count > 0);
+
+  cbPlayers.Enabled := (Assigned(FClient) and (FPlayerIds.Count > 0)) or FSelectingDevice;
+
   grpPlayback.Enabled := Ready;
 end;
 
@@ -250,10 +297,30 @@ begin
   VolumeTimer.Enabled := False;
   FVolumePending := False;
   FVolumeRequest := 0;
+  FFileRequest := 0;
+  FServingFile := '';
+  FFileNeedsStart := True;
+  FPlayState := '';
+  FreeAndNil(FAudioServer);
+  FDiscoverPending := False;
+  FAllowDiscovery := False;
+  FSelectingDevice := False;
+  FDevices := nil;
+  lblPlayer.Caption := 'Player:';
+
+  if Assigned(FDiscovery) then
+    begin
+
+      FDiscovery.Terminate;
+      FDiscovery.WaitFor;
+      FreeAndNil(FDiscovery);
+    end;
+
   // Free outside Dispatch: callbacks never destroy their own client.
   FreeAndNil(FClient);
   cbPlayers.Clear;
   FPlayerIds.Clear;
+  FPlayerAddresses.Clear;
   lblConnection.Caption := 'Disconnected';
   lblTitle.Caption := 'Title: -';
   lblArtist.Caption := 'Artist: -';
@@ -268,6 +335,19 @@ end;
 procedure TfrmHeosRemote.btnConnectClick(Sender: TObject);
 begin
 
+  if not IPv4Valid(Trim(edHost.Text)) then
+    StartDiscovery()
+  else
+    ConnectToHost(True);
+end;
+
+
+procedure TfrmHeosRemote.ConnectToHost(AllowDiscovery: Boolean);
+begin
+
+  Disconnect();
+  FAllowDiscovery := AllowDiscovery;
+
   try
 
     FClient := THeosClient.Create(Trim(edHost.Text));
@@ -280,6 +360,7 @@ begin
     FClient.Enqueue(THeosCommands.GetPlayers());
     DispatchTimer.Enabled := True;
     UpdateControls();
+
   except
 
     on E: Exception do
@@ -289,6 +370,79 @@ begin
         AddLog(E.Message);
       end;
   end;
+end;
+
+
+procedure TfrmHeosRemote.btnFindClick(Sender: TObject);
+begin
+
+  StartDiscovery();
+end;
+
+
+procedure TfrmHeosRemote.StartDiscovery();
+begin
+
+  if Assigned(FDiscovery) then
+    Exit;
+
+  Disconnect();
+  FDiscovery := THeosDiscovery.Create;
+  lblConnection.Caption := 'Searching for HEOS devices...';
+  AddLog(lblConnection.Caption);
+  FDiscovery.Start;
+  DispatchTimer.Enabled := True;
+  UpdateControls();
+end;
+
+
+procedure TfrmHeosRemote.CompleteDiscovery();
+var
+  Device: THeosDevice;
+  ErrorText: string;
+
+begin
+
+  if not Assigned(FDiscovery) or not FDiscovery.Finished then
+    Exit;
+
+  FDevices := Copy(FDiscovery.Devices);
+  ErrorText := FDiscovery.ErrorText;
+  FreeAndNil(FDiscovery);
+  DispatchTimer.Enabled := False;
+  cbPlayers.Clear;
+
+  for Device in FDevices do
+    begin
+
+      cbPlayers.Items.Add(Device.Name + ' (' + Device.Address + ')');
+      AddLog('Found HEOS device: ' + Device.Name + ' - ' + Device.Address);
+    end;
+
+  if (Length(FDevices) = 1) then
+    begin
+
+      edHost.Text := FDevices[0].Address;
+      // One retry after discovery; no endless connect/discover loop.
+      ConnectToHost(False);
+      Exit;
+    end;
+
+  FSelectingDevice := Length(FDevices) > 0;
+  if FSelectingDevice then
+    begin
+
+      lblPlayer.Caption := 'Device:';
+      lblConnection.Caption := 'Select a HEOS device below.';
+    end
+  else
+    if (ErrorText <> '') then
+      lblConnection.Caption := 'Discovery failed: ' + ErrorText
+    else
+      lblConnection.Caption := 'No HEOS device replied. Check power/network, or enter its IP.';
+
+  AddLog(lblConnection.Caption);
+  UpdateControls();
 end;
 
 
@@ -333,10 +487,29 @@ end;
 
 
 procedure TfrmHeosRemote.cbPlayersChange(Sender: TObject);
+var
+  Index: Integer;
+
 begin
+
+  if FSelectingDevice then
+    begin
+
+      Index := cbPlayers.ItemIndex;
+      if (Index >= 0) and (Index < Length(FDevices)) then
+        begin
+
+          edHost.Text := FDevices[Index].Address;
+          ConnectToHost(False);
+        end;
+      Exit;
+    end;
 
   FVolumePending := False;
   FVolumeRequest := 0;
+  FFileRequest := 0;
+  FFileNeedsStart := True;
+  FPlayState := '';
   VolumeTimer.Enabled := False;
   pbProgress.Position := 0;
   lblTime.Caption := '00:00:00 / 00:00:00';
@@ -377,6 +550,7 @@ begin
 
     cbPlayers.Clear;
     FPlayerIds.Clear;
+    FPlayerAddresses.Clear;
     Index := -1;
 
     for i := 0 to Players.Count - 1 do
@@ -392,6 +566,7 @@ begin
         Name := HeosDecode(JsonText(Player, 'name'));
         cbPlayers.Items.Add(Name + ' (' + JsonText(Player, 'ip') + ')');
         FPlayerIds.Add(PlayerId);
+        FPlayerAddresses.Add(JsonText(Player, 'ip'));
 
         if (HadSelection and (PlayerId = PreviousId)) or
            (not HadSelection and (JsonText(Player, 'ip') = Trim(edHost.Text))) then
@@ -407,8 +582,18 @@ begin
     cbPlayers.Items.EndUpdate;
   end;
 
-  cbPlayersChange(cbPlayers);
+  if not HadSelection or (cbPlayers.ItemIndex < 0) or
+     (FPlayerIds[cbPlayers.ItemIndex] <> PreviousId) then
+    cbPlayersChange(cbPlayers)
+  else
+    begin
+
+      UpdateControls();
+      RefreshPlayer();
+    end;
   AddLog(Format('%d HEOS player(s) found.', [FPlayerIds.Count]));
+  if (FPlayerIds.Count = 0) and FAllowDiscovery then
+    FDiscoverPending := True;
 end;
 
 
@@ -423,6 +608,17 @@ begin
     Exit;
 
   try
+
+    if (TComponent(Sender).Tag = 1) and (edAudioFile.Text <> '') and
+       (FFileNeedsStart or (FPlayState = 'stop')) then
+      begin
+
+        PlaySelectedFile();
+        Exit;
+      end;
+
+    if (TComponent(Sender).Tag = 3) then
+      FFileNeedsStart := True;
 
     case TComponent(Sender).Tag of
       0: Command := THeosCommands.PlayPrevious(PlayerId);
@@ -440,6 +636,61 @@ begin
 
     on E: Exception do
       AddLog(E.Message);
+  end;
+end;
+
+
+procedure TfrmHeosRemote.btnBrowseClick(Sender: TObject);
+begin
+
+  if not dlgAudioFile.Execute then
+    Exit;
+
+  edAudioFile.Text := dlgAudioFile.FileName;
+  FFileNeedsStart := True;
+  AddLog('Selected file: ' + edAudioFile.Text + '. Press Play to stream it.');
+end;
+
+
+procedure TfrmHeosRemote.PlaySelectedFile();
+var
+  PlayerId: Int64;
+  Address: string;
+
+begin
+
+  if not Assigned(FClient) or not SelectedPlayer(PlayerId) then
+    Exit;
+  if (FFileRequest <> 0) then
+    Exit;
+
+  try
+
+    if not FileExists(edAudioFile.Text) then
+      raise EInvalidOperation.Create('Choose an existing audio file first.');
+
+    Address := FPlayerAddresses[cbPlayers.ItemIndex];
+    if not IPv4Valid(Address) then
+      raise EInvalidOperation.Create('The selected player has no valid IPv4 address.');
+
+    Address := LocalAddressFor(Address);
+    FreeAndNil(FAudioServer);
+    FServingFile := edAudioFile.Text;
+    FAudioServer := THeosAudioServer.Create(Address, 0, FServingFile, False);
+    FAudioServer.Start;
+    FFileRequest := FClient.Enqueue(THeosCommands.PlayUrl(PlayerId, FAudioServer.Url()));
+    AddLog('Serving selected file: ' + FAudioServer.Url());
+    lblState.Caption := 'State: loading file...';
+  except
+
+    on E: Exception do
+      begin
+
+        FFileRequest := 0;
+        FFileNeedsStart := True;
+        FreeAndNil(FAudioServer);
+        AddLog(E.Message);
+      end;
   end;
 end;
 
@@ -540,6 +791,15 @@ begin
   if (AMessage.RequestId = FVolumeRequest) then
     FVolumeRequest := 0;
 
+  if (FFileRequest <> 0) and (AMessage.RequestId = FFileRequest) then
+    begin
+
+      FFileRequest := 0;
+      FFileNeedsStart := not AMessage.Success or (edAudioFile.Text <> FServingFile);
+      if AMessage.Success then
+        AddLog('HEOS accepted the file URL. Playback may take a few seconds.');
+    end;
+
   if not AMessage.Success then
     begin
 
@@ -579,7 +839,11 @@ begin
   else
     if (AMessage.Command = 'player/get_play_state') or
        (AMessage.Command = 'player/set_play_state') then
-      lblState.Caption := 'State: ' + AMessage.Parameter('state')
+      begin
+
+        FPlayState := AMessage.Parameter('state');
+        lblState.Caption := 'State: ' + FPlayState;
+      end
   else
     if (AMessage.Command = 'player/get_now_playing_media') and
        (AMessage.Payload is TJSONObject) then
@@ -614,7 +878,12 @@ begin
     Exit;
 
   case AMessage.EventKind of
-    hePlayerStateChanged: lblState.Caption := 'State: ' + AMessage.Parameter('state');
+    hePlayerStateChanged:
+      begin
+
+        FPlayState := AMessage.Parameter('state');
+        lblState.Caption := 'State: ' + FPlayState;
+      end;
     heNowPlayingChanged: FClient.Enqueue(THeosCommands.GetNowPlayingMedia(PlayerId));
     hePlayerVolumeChanged:
       begin
@@ -663,7 +932,16 @@ begin
   if (AMessage.RequestId = FVolumeRequest) then
     FVolumeRequest := 0;
 
+  if (FFileRequest <> 0) and (AMessage.RequestId = FFileRequest) then
+    begin
+
+      FFileRequest := 0;
+      FFileNeedsStart := True;
+    end;
+
   AddLog(AMessage.LocalError);
+  if FAllowDiscovery and Assigned(FClient) and not FClient.Connected then
+    FDiscoverPending := True;
   UpdateControls();
 end;
 
@@ -671,12 +949,22 @@ end;
 procedure TfrmHeosRemote.DispatchTimerTimer(Sender: TObject);
 begin
 
+  if Assigned(FDiscovery) then
+    begin
+
+      CompleteDiscovery();
+      Exit;
+    end;
+
   if not Assigned(FClient) then
     Exit;
 
   try
 
     FClient.Dispatch();
+    // Defer client destruction until all API callbacks have returned.
+    if FDiscoverPending then
+      StartDiscovery();
   except
 
     on E: Exception do
