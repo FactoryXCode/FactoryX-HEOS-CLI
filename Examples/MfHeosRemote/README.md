@@ -1,6 +1,6 @@
-﻿# MfPack HEOS CLI Remote sample
+﻿# FactoryX HEOS CLI Remote sample
 
-Open `MfHeosRemote.dproj` in Delphi XE7 and build Win32 or Win64. The form layout and all event bindings are stored in `frmHeosRemote.dfm`, using standard VCL controls. The code follows the MfPack sample format. The remote uses the repository's HEOS CLI units directly; a Media Foundation session is not needed for receiver control.
+Open `MfHeosRemote.dproj` in Delphi (XE7 or higher) and build Win32 or Win64. The form layout and all event bindings are stored in `frmHeosRemote.dfm`, using standard VCL controls.  The remote uses the repository's HEOS CLI units directly; a Media Foundation session is not needed for receiver control.
 
 1. Click **Find HEOS**, or leave the IP empty and click **Connect**, to discover HEOS devices. A single device is connected automatically; select a device in the list when several are found. You can also enter the receiver's IPv4 address and click **Connect**. Failed connections try discovery once.
 2. Select a player from the list. The sample reads its state, volume, mute and now-playing information.
@@ -11,5 +11,17 @@ Without a selected file, Play resumes the player's existing media/queue. With a 
 
 `DispatchTimer` calls `THeosClient.Dispatch` every 50 ms, so replies and event handlers run on the VCL thread. Volume writes are delayed for 200 ms and coalesced while a previous write is outstanding. IDs are stored as signed `Int64` values. Incoming player events are filtered by the selected ID. The log clears after 300 lines. Timers are disabled before freeing the client, outside any callback.
 
-From the repository root, `Build.ps1 -RunTests` builds this sample, the console demo and the simulator tests on both platforms. Source and license notices remain in the original FactoryX headers.
+From the repository root, `Build.ps1 -RunTests` builds this sample, the console demo and the simulator tests on both platforms. 
 Discovery runs on a background thread using HEOS SSDP advertisements and checks CLI port 1255. It supports HEOS devices from Denon and Marantz, including speakers; AVR port 23 is not required. It searches the local IPv4 network interfaces. If multicast is blocked or the device is unavailable, enter its IP manually or retry Find HEOS. Disconnect cancels discovery.
+  
+  
+Project: FactoryX - HEOS CLI  
+  
+Project location:    
+https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
+  
+First release date: 13/08/2026  
+Final release date: 30/10/2026  
+  
+Copyright © FactoryX. All rights reserved.
+
