@@ -217,4 +217,16 @@ References:
 - HEOS CLI (Play URL): https://assets.denon.com/documentmaster/us/heos_cli_protocolspecification-version.pdf
 - Windows loopback: https://learn.microsoft.com/en-us/windows/win32/coreaudio/loopback-recording
 - Windows AAC encoder: https://learn.microsoft.com/en-us/windows/win32/medfound/aac-encoder
+  
+  
+Project: FactoryX - HEOS CLI  
+  
+Project location:    
+https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
+  
+First release date: 13/08/2026  
+Final release date: 29/10/2026  
+  
+Copyright © FactoryX. All rights reserved.
+
 

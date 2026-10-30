@@ -168,4 +168,13 @@ The full application is built separately with its sample-local `Build.ps1 -MfPac
 
 The common AVR command framing and level encoding are documented in Denon's [AVR/AVC control protocol](https://downloads.denon.com/documentmaster/us/avr987serialprotocol.pdf). The modern tone, zone and surround commands included here also follow the working AVR-X2700H application implementation. That older protocol document is not an exhaustive command list for newer models. HEOS commands remain documented separately in the main repository README and command catalog.
 
-FactoryX source headers and notices are preserved. See the repository's `LICENSE` and individual source files.
+Project: FactoryX - HEOS CLI  
+  
+Project location:    
+https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
+  
+First release date: 13/08/2026  
+Final release date: 30/10/2026  
+  
+Copyright © FactoryX. All rights reserved.
+

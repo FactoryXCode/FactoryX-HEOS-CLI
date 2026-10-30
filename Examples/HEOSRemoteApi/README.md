@@ -32,3 +32,14 @@ python Tests/RunSimulator.py --exe ../../Build/Win32/HEOSRemoteApi/RemoteApiTest
 ```
 
 Tests cover playback, player selection, parameter encoding, progress, state replies, receiver settings, capped volume and stopping a request after a rejected command.
+  
+  
+Project: FactoryX - HEOS CLI  
+  
+Project location:    
+https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
+  
+First release date: 13/08/2026  
+Final release date: 29/10/2026  
+  
+Copyright © FactoryX. All rights reserved.

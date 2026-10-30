@@ -55,6 +55,6 @@ Project location:
 https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
   
 First release date: 13/08/2026  
-Final release date: 29/10/2026  
+Final release date: 30/10/2026  
   
 Copyright © FactoryX. All rights reserved.
