@@ -63,16 +63,22 @@ interface
 
 uses
 
+  {System}
   System.SysUtils,
   System.Classes,
   System.SyncObjs,
   System.Generics.Collections,
+  {AVR}
   Avr.Commands,
+  {HEOS}
   Heos.Sockets;
 
 type
 
-  TAvrMessageKind = (amReply, amEvent, amError, amConnection);
+  TAvrMessageKind = (amReply,
+                     amEvent,
+                     amError,
+                     amConnection);
 
   TAvrMessage = class
   public
@@ -87,7 +93,7 @@ type
   end;
 
   TAvrMessageEvent = procedure(Sender: TObject;
-                                 AMessage: TAvrMessage) of object;
+                               AMessage: TAvrMessage) of object;
 
   TAvrPending = record
     Id: UInt64;
@@ -108,9 +114,12 @@ type
     procedure CloseConnection();
     procedure OpenConnection();
     function Cancelled(): Boolean;
+    
     function ReadValue(ATimeout: Integer; out AValue: TAvrValue): Boolean;
+    
     function Matches(const ACommand: TAvrCommand;
-                        const AValue: TAvrValue): Boolean;
+                     const AValue: TAvrValue): Boolean;
+    
     procedure Process(const APending: TAvrPending);
 
   protected
@@ -155,8 +164,9 @@ type
   public
 
     constructor Create(const AHost: string;
-                          APort: Word = 23;
-                          AConnectTimeoutMs: Integer = 2500);
+                       APort: Word = 23;
+                       AConnectTimeoutMs: Integer = 2500);
+                       
     destructor Destroy(); override;
 
     function Connect(): UInt64;
@@ -190,13 +200,14 @@ function GetTickCount64: UInt64; stdcall; external 'kernel32.dll';
 
 
 constructor TAvrClient.Create(const AHost: string;
-                                 APort: Word;
-                                 AConnectTimeoutMs: Integer);
+                              APort: Word;
+                             AConnectTimeoutMs: Integer);
 begin
 
   inherited Create;
   if not IPv4Valid(AHost) or (APort = 0) then
     raise EArgumentException.Create('A valid AVR IPv4 address and port are required.');
+  
   if (AConnectTimeoutMs < 100) or (AConnectTimeoutMs > 60000) then
     raise EArgumentOutOfRangeException.Create('AVR connect timeout must be 100 to 60000 ms.');
 
@@ -205,7 +216,11 @@ begin
   FConnectTimeoutMs := AConnectTimeoutMs;
   FTimeoutMs := 2500;
   FLock := TCriticalSection.Create;
-  FWake := TEvent.Create(nil, False, False, '');
+  
+  FWake := TEvent.Create(nil,
+                         False,
+                         False, '');
+                         
   FPending := TQueue<TAvrPending>.Create;
   FMessages := TQueue<TAvrMessage>.Create;
   FWorker := TAvrWorker.Create(Self);
@@ -343,8 +358,10 @@ function TAvrClient.Generation(): Cardinal;
 begin
 
   FLock.Acquire;
+  
   try
     Result := FGeneration;
+    
   finally
     FLock.Release;
   end;
@@ -355,8 +372,10 @@ function TAvrClient.GetConnected(): Boolean;
 begin
 
   FLock.Acquire;
+  
   try
     Result := FConnected;
+    
   finally
     FLock.Release;
   end;
@@ -367,8 +386,10 @@ function TAvrClient.GetDropped(): UInt64;
 begin
 
   FLock.Acquire;
+  
   try
     Result := FDropped;
+    
   finally
     FLock.Release;
   end;
@@ -383,9 +404,11 @@ var
 begin
 
   FLock.Acquire;
+  
   try
     Changed := (FConnected <> AValue);
     FConnected := AValue;
+    
   finally
     FLock.Release;
   end;
@@ -415,6 +438,7 @@ begin
       end
     else
       FMessages.Enqueue(AMessage);
+      
   finally
     FLock.Release;
   end;
@@ -430,6 +454,7 @@ begin
     Result := (FPending.Count > 0);
     if Result then
       APending := FPending.Dequeue;
+      
   finally
     FLock.Release;
   end;
@@ -446,6 +471,7 @@ begin
     Result := (FMessages.Count > 0);
     if Result then
       AMessage := FMessages.Dequeue;
+      
   finally
     FLock.Release;
   end;
@@ -485,6 +511,7 @@ constructor TAvrWorker.Create(AOwner: TAvrClient);
 begin
 
   inherited Create(True);
+  
   FOwner := AOwner;
   FreeOnTerminate := False;
   FMaximumVolume := 98;
@@ -495,6 +522,7 @@ destructor TAvrWorker.Destroy();
 begin
 
   FConnection.Free;
+  
   inherited;
 end;
 
@@ -539,6 +567,7 @@ begin
   Line := Trim(FConnection.ReadLine(#13, ATimeout));
   Result := (Line <> '');
   AValue := Default(TAvrValue);
+  
   if not Result then
     Exit;
 
@@ -546,6 +575,7 @@ begin
     raise EInvalidOperation.Create('Receiver rejected the AVR command.');
 
   AValue := ParseAvrValue(Line);
+  
   if (AValue.Kind = avVolumeLimit) then
     FMaximumVolume := AValue.Number;
 
@@ -557,7 +587,7 @@ end;
 
 
 function TAvrWorker.Matches(const ACommand: TAvrCommand;
-                              const AValue: TAvrValue): Boolean;
+                            const AValue: TAvrValue): Boolean;
 var
   Expected: Double;
   Value: string;
@@ -572,18 +602,25 @@ begin
 
       Result := StartsStr(ACommand.ExpectedPrefix, AValue.RawText);
       Value := Copy(AValue.RawText, Length(ACommand.ExpectedPrefix) + 1, MaxInt);
+      
       if (ACommand.ExpectedValue <> '') then
         Result := Result and (Value = ACommand.ExpectedValue);
+      
       Exit;
     end;
 
   Result := (AValue.Kind = ACommand.ReplyKind);
+  
   if not Result or (ACommand.ExpectedValue = '') then
     Exit;
 
   if (ACommand.ReplyKind = avVolume) and AValue.HasNumber and
-     TryAvrLevel(ACommand.ExpectedValue, Expected) then
-    Result := SameValue(AValue.Number, Min(Expected, FMaximumVolume), 0.001)
+     TryAvrLevel(ACommand.ExpectedValue,
+                 Expected) then
+    Result := SameValue(AValue.Number,
+                        Min(Expected,
+                        FMaximumVolume),
+                        0.001)
   else
     Result := (AValue.Value = ACommand.ExpectedValue);
 end;
@@ -610,6 +647,7 @@ begin
 
       OpenConnection();
       Deadline := GetTickCount64 + 80;
+      
       // Deliver buffered notifications before sending the next request.
       while not Cancelled() and (GetTickCount64 < Deadline) do
         if not ReadValue(10, Value) then
@@ -617,6 +655,7 @@ begin
 
       while not Cancelled() and (GetTickCount64 < FNextSendAt) do
         Sleep(10);
+      
       if Cancelled() then
         raise EAbort.Create('AVR request cancelled.');
 
@@ -634,12 +673,12 @@ begin
         if ReadValue(50, Value) then
           begin
 
-            if (Value.Kind = APending.Command.ReplyKind) or
-               (APending.Command.ReplyKind = avUnknown) then
+            if (Value.Kind = APending.Command.ReplyKind) or (APending.Command.ReplyKind = avUnknown) then
               Candidate := Value;
 
             // MVMAX may arrive after a capped MV reply.
-            if Matches(APending.Command, Candidate) then
+            if Matches(APending.Command,
+                       Candidate) then
               begin
 
                 Message.Kind := amReply;
