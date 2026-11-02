@@ -1,4 +1,4 @@
-﻿// FactoryX
+// FactoryX
 //
 // Copyright: FactoryX. All rights reserved.
 //
@@ -182,7 +182,8 @@ type
     FRetryAt: UInt64;
     FRetryDelay: Cardinal;
     procedure CloseConnection();
-    procedure OpenConnection();
+    function OpenConnection(): Boolean;
+    procedure RetryLater();
     function Cancelled(): Boolean;
     function ReadFrame(TimeoutMs: Integer): string;
     function ExtractFrame(): string;
@@ -991,16 +992,51 @@ begin
 end;
 
 
-procedure THeosWorker.OpenConnection();
+procedure THeosWorker.RetryLater();
+begin
+
+  FRetryAt := GetTickCount64 + UInt64(FRetryDelay);
+
+  if (FRetryDelay < 30000) then
+    FRetryDelay := FRetryDelay * 2;
+
+  if (FRetryDelay > 30000) then
+    FRetryDelay := 30000;
+end;
+
+
+function THeosWorker.OpenConnection(): Boolean;
 var
   Command: THeosCommand;
   Reply: THeosMessage;
+  Message: THeosMessage;
+  Pending: THeosPending;
+  ErrorText: string;
 
 begin
 
-  FConnection := THeosConnection.Create(FOwner.FHost,
-                                        FOwner.FPort,
-                                        FOwner.FConnectTimeoutMs);
+  Result := THeosConnection.TryConnect(FOwner.FHost, FOwner.FPort,
+                                         FOwner.FConnectTimeoutMs,
+                                         FConnection, ErrorText);
+  if not Result then
+    begin
+      FOwner.SetConnected(False);
+      Message := THeosMessage.Create;
+      Message.Kind := hmError;
+      Message.LocalError := ErrorText;
+      FOwner.Post(Message);
+      while FOwner.Pop(Pending) do
+        begin
+          Message := THeosMessage.Create;
+          Message.Kind := hmError;
+          Message.RequestId := Pending.Id;
+          Message.FCommand := Pending.Command.Path;
+          Message.LocalError := ErrorText + ' Command was not sent.';
+          FOwner.Post(Message);
+        end;
+      RetryLater();
+      Exit;
+    end;
 
   if Cancelled() then
     raise EHeosProtocol.Create('HEOS connection cancelled');
@@ -1229,7 +1265,8 @@ begin
                   FOwner.FWake.WaitFor(50);
                   Continue;
                 end;
-              OpenConnection();
+              if not OpenConnection() then
+                Continue;
             end;
 
           if FOwner.Pop(Pending) then
@@ -1293,13 +1330,7 @@ begin
                     FOwner.Post(Message);
                   end;
 
-              FRetryAt := GetTickCount64 + UInt64(FRetryDelay);
-
-              if (FRetryDelay < 30000) then
-                FRetryDelay := FRetryDelay * 2;
-
-              if (FRetryDelay > 30000) then
-                FRetryDelay := 30000;
+              RetryLater();
             end;
         end;
       end;

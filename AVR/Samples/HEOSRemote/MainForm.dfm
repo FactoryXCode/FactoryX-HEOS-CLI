@@ -1,18 +1,21 @@
 object HEOSForm: THEOSForm
   Left = 0
   Top = 0
-  Caption = 'HEOS Remote'
-  ClientHeight = 555
-  ClientWidth = 809
-  Color = clBtnFace
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'HEOS Remote 1.1.11'
+  ClientHeight = 620
+  ClientWidth = 810
+  Color = clBlack
   Constraints.MinWidth = 806
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -13
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OldCreateOrder = False
+  OldCreateOrder = True
   Position = poScreenCenter
+  Scaled = False
   OnCloseQuery = MainCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
@@ -21,12 +24,13 @@ object HEOSForm: THEOSForm
   object pnlSettings: TPanel
     Left = 0
     Top = 33
-    Width = 809
-    Height = 522
+    Width = 810
+    Height = 587
     Align = alClient
     Color = 5850948
     ParentBackground = False
     TabOrder = 0
+    ExplicitLeft = 1
     object AddressLabel: TLabel
       Left = 54
       Top = 31
@@ -44,8 +48,8 @@ object HEOSForm: THEOSForm
     end
     object FStatus: TLabel
       Left = 1
-      Top = 319
-      Width = 807
+      Top = 384
+      Width = 808
       Height = 36
       Align = alBottom
       AutoSize = False
@@ -65,7 +69,7 @@ object HEOSForm: THEOSForm
     end
     object PcAddressLabel: TLabel
       Left = 30
-      Top = 254
+      Top = 251
       Width = 118
       Height = 17
       Caption = 'PC IP (blank = auto):'
@@ -78,7 +82,7 @@ object HEOSForm: THEOSForm
     end
     object PortLabel: TLabel
       Left = 364
-      Top = 254
+      Top = 251
       Width = 62
       Height = 17
       Caption = 'HTTP port:'
@@ -110,8 +114,18 @@ object HEOSForm: THEOSForm
       Width = 190
       Height = 25
       Hint = 'Find the HEOS receiver'#39's IP in the receiver'
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvRaised
+      BorderStyle = bsNone
+      Color = 5850948
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 0
-      Text = '192.168.50.103'
     end
     object cbxHEOSDevices: TComboBox
       Left = 353
@@ -119,6 +133,13 @@ object HEOSForm: THEOSForm
       Width = 290
       Height = 25
       Style = csDropDownList
+      Color = 5850948
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 1
       OnChange = HEOSDeviceChange
     end
@@ -127,15 +148,40 @@ object HEOSForm: THEOSForm
       Top = 251
       Width = 185
       Height = 25
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvRaised
+      BorderStyle = bsNone
+      Color = 5850948
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 2
+      TextHint = '0.0.0.0'
     end
     object StreamPortEdit: TEdit
       Left = 432
       Top = 251
       Width = 90
       Height = 25
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvRaised
+      BorderStyle = bsNone
+      Color = 5850948
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      NumbersOnly = True
+      ParentFont = False
       TabOrder = 3
       Text = '8890'
+      TextHint = '8890'
     end
     object btnFindHEOSDevice: TDnButton
       Left = 649
@@ -176,7 +222,14 @@ object HEOSForm: THEOSForm
       Width = 285
       Height = 25
       Style = csDropDownList
+      Color = 5850948
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
       ItemIndex = 0
+      ParentFont = False
       TabOrder = 5
       Text = 'TV Audio'
       Items.Strings = (
@@ -190,6 +243,7 @@ object HEOSForm: THEOSForm
         'HEOS / Network')
     end
     object chkAutoNextCheck: TCheckBox
+      AlignWithMargins = True
       Left = 30
       Top = 211
       Width = 140
@@ -197,11 +251,13 @@ object HEOSForm: THEOSForm
       Alignment = taLeftJustify
       Caption = 'Auto-next in playlist:'
       Checked = True
+      Color = 5850948
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = []
+      ParentColor = False
       ParentFont = False
       State = cbChecked
       TabOrder = 6
@@ -209,8 +265,8 @@ object HEOSForm: THEOSForm
     end
     object memFLog: TMemo
       Left = 1
-      Top = 355
-      Width = 807
+      Top = 420
+      Width = 808
       Height = 166
       Align = alBottom
       Color = 4410626
@@ -332,41 +388,47 @@ object HEOSForm: THEOSForm
   object pnlPlay: TPanel
     Left = 0
     Top = 33
-    Width = 809
-    Height = 522
+    Width = 810
+    Height = 587
     Align = alClient
     Color = 4865081
     ParentBackground = False
     TabOrder = 1
     ExplicitLeft = 1
+    object Bevel8: TBevel
+      Left = 579
+      Top = 38
+      Width = 215
+      Height = 61
+    end
     object Bevel6: TBevel
-      Left = 8
+      Left = 12
       Top = 31
-      Width = 415
-      Height = 446
+      Width = 127
+      Height = 510
     end
     object Bevel7: TBevel
-      Left = 136
+      Left = 145
       Top = 31
-      Width = 287
-      Height = 446
+      Width = 278
+      Height = 510
     end
     object Bevel5: TBevel
       Left = 429
-      Top = 441
+      Top = 505
       Width = 370
       Height = 36
     end
     object Bevel1: TBevel
       Left = 429
-      Top = 111
+      Top = 114
       Width = 370
       Height = 71
     end
     object lblStreamInfo: TLabel
       Left = 1
-      Top = 481
-      Width = 807
+      Top = 546
+      Width = 808
       Height = 40
       Align = alBottom
       Alignment = taCenter
@@ -383,11 +445,11 @@ object HEOSForm: THEOSForm
       Transparent = False
       WordWrap = True
       ExplicitLeft = 0
-      ExplicitTop = 508
+      ExplicitTop = 571
     end
     object lblDuration: TLabel
       Left = 439
-      Top = 452
+      Top = 516
       Width = 105
       Height = 17
       Margins.Left = 2
@@ -404,7 +466,7 @@ object HEOSForm: THEOSForm
     end
     object lblPlayed: TLabel
       Left = 563
-      Top = 452
+      Top = 516
       Width = 93
       Height = 17
       Margins.Left = 2
@@ -435,7 +497,7 @@ object HEOSForm: THEOSForm
       ParentFont = False
     end
     object lblVol: TLabel
-      Left = 19
+      Left = 21
       Top = 23
       Width = 58
       Height = 16
@@ -460,13 +522,13 @@ object HEOSForm: THEOSForm
     end
     object Bevel2: TBevel
       Left = 429
-      Top = 271
+      Top = 282
       Width = 370
-      Height = 75
+      Height = 71
     end
     object lblZones: TLabel
       Left = 439
-      Top = 264
+      Top = 273
       Width = 51
       Height = 13
       Hint = 'Zone'#39's'
@@ -495,8 +557,8 @@ object HEOSForm: THEOSForm
       Height = 71
     end
     object lblBalance: TLabel
-      Left = 228
-      Top = 451
+      Left = 234
+      Top = 513
       Width = 101
       Height = 17
       Alignment = taCenter
@@ -510,8 +572,8 @@ object HEOSForm: THEOSForm
       ParentFont = False
     end
     object Label2: TLabel
-      Left = 149
-      Top = 454
+      Left = 153
+      Top = 516
       Width = 47
       Height = 13
       Hint = 'Channel volume'
@@ -533,8 +595,8 @@ object HEOSForm: THEOSForm
       Layout = tlCenter
     end
     object Label3: TLabel
-      Left = 361
-      Top = 454
+      Left = 367
+      Top = 516
       Width = 47
       Height = 13
       Hint = 'Channel volume'
@@ -556,15 +618,15 @@ object HEOSForm: THEOSForm
       Layout = tlCenter
     end
     object lblBass: TLabel
-      Left = 205
-      Top = 127
-      Width = 147
+      Left = 203
+      Top = 45
+      Width = 59
       Height = 17
       Alignment = taCenter
       AutoSize = False
-      Caption = 'Bass: -- dB'
+      Caption = '0 dB'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
+      Font.Color = clAqua
       Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = []
@@ -572,15 +634,15 @@ object HEOSForm: THEOSForm
       WordWrap = True
     end
     object lblTreble: TLabel
-      Left = 198
-      Top = 224
-      Width = 161
+      Left = 305
+      Top = 45
+      Width = 51
       Height = 17
       Alignment = taCenter
       AutoSize = False
-      Caption = 'Treble: -- dB'
+      Caption = '0 dB'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
+      Font.Color = clAqua
       Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = []
@@ -588,13 +650,13 @@ object HEOSForm: THEOSForm
       WordWrap = True
     end
     object lblToneStatus: TLabel
-      Left = 149
-      Top = 285
-      Width = 264
-      Height = 70
+      Left = 153
+      Top = 303
+      Width = 261
+      Height = 46
       Alignment = taCenter
       AutoSize = False
-      Caption = 'Reading receiver tone settings ...'
+      Caption = 'Receiver tone settings ...'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -605,7 +667,7 @@ object HEOSForm: THEOSForm
     end
     object Bevel4: TBevel
       Left = 429
-      Top = 191
+      Top = 197
       Width = 370
       Height = 71
     end
@@ -656,8 +718,8 @@ object HEOSForm: THEOSForm
       Layout = tlCenter
     end
     object lblSeekTime: TLabel
-      Left = 8
-      Top = 26
+      Left = 12
+      Top = 1
       Width = 58
       Height = 17
       Caption = ' 00:00:00 '
@@ -674,7 +736,7 @@ object HEOSForm: THEOSForm
     end
     object Label6: TLabel
       Left = 439
-      Top = 103
+      Top = 106
       Width = 56
       Height = 16
       Margins.Left = 2
@@ -697,7 +759,7 @@ object HEOSForm: THEOSForm
     end
     object Label7: TLabel
       Left = 439
-      Top = 184
+      Top = 190
       Width = 56
       Height = 16
       Margins.Left = 2
@@ -718,15 +780,47 @@ object HEOSForm: THEOSForm
       Transparent = False
       Layout = tlCenter
     end
+    object Label8: TLabel
+      Left = 208
+      Top = 273
+      Width = 49
+      Height = 17
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'Bass'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      WordWrap = True
+    end
+    object Label9: TLabel
+      Left = 307
+      Top = 273
+      Width = 49
+      Height = 17
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'Treble'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      WordWrap = True
+    end
     object tbBalance: TDnTrackBar
-      Left = 142
-      Top = 409
+      Left = 148
+      Top = 467
       Width = 271
       Height = 40
       Hint = 
         'Left / Centre / Right. Double-click to restore the original chan' +
         'nel levels.'
-      TabOrder = 1
+      TabOrder = 5
       Color = 4865081
       ParentColor = False
       Minimum = -24
@@ -755,29 +849,31 @@ object HEOSForm: THEOSForm
       OnDblClick = BalanceDblClick
     end
     object tbBass: TDnTrackBar
-      Left = 149
-      Top = 77
-      Width = 259
-      Height = 44
+      Left = 200
+      Top = 68
+      Width = 62
+      Height = 208
       Hint = 'Bass -6 to +6 dB. Double-click to reset to 0 dB.'
-      TabOrder = 6
+      TabOrder = 1
       Color = 4865081
       ParentColor = False
       Minimum = -6
       Maximum = 6
-      ThumbWidth = 60
-      ThumbHeight = 40
+      Orientation = soVertical
+      IncreaseToward = itUp
+      ThumbWidth = 40
+      ThumbHeight = 60
       TransparentColor = clBlack
-      ThumbPictureHorz.Data = {
-        07544269746D617012010000424D120100000000000076000000280000001300
-        00000D00000001000400000000009C000000330B0000330B0000100000001000
-        000000000000959595009B9B9B00A2A2A200B9B9B900C4C4C400FFFFFF00FFFF
-        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-        FF00055555554445555555000000531425454045452413500000531425454045
-        4524135000005314254540454524135000005314254540454524135000005314
-        2545404545241350000053142545404545241350000053142545404545241350
-        0000531425454045452413500000531425454045452413500000531425454045
-        452413500000531425454045452413500000055555554445555555000000}
+      ThumbPictureVert.Data = {
+        07544269746D61700E010000424D0E0100000000000076000000280000000D00
+        000013000000010004000000000098000000330B0000330B0000100000001000
+        000000000000959595009B9B9B00A2A2A200B9B9B900BFBFBF00C4C4C400C9C9
+        C900CECECE00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00044444444444000048888888888840004777777777774000455555555555
+        4000477777777777400045555555555540004777777777774000455555555555
+        4000477777777777500050000000000050005444444444445000555555555555
+        5000544444444444500055555555555550005222222222225000544444444444
+        5000511111111111500053333333333350000555555555550000}
       ShowTicks = True
       TickCount = 50
       DbFloor = -50.000000000000000000
@@ -785,33 +881,36 @@ object HEOSForm: THEOSForm
       TickColor = clAqua
       TickLabelsVisible = False
       TickPlacementH = tphBoth
+      TickPlacementV = tpvBoth
       OnChange = ToneChange
       OnDblClick = ToneDblClick
     end
     object tbTreble: TDnTrackBar
-      Left = 149
-      Top = 176
-      Width = 259
-      Height = 42
+      Left = 297
+      Top = 68
+      Width = 71
+      Height = 206
       Hint = 'Treble -6 to +6 dB. Double-click to reset to 0 dB.'
-      TabOrder = 12
+      TabOrder = 2
       Color = 4865081
       ParentColor = False
       Minimum = -6
       Maximum = 6
-      ThumbWidth = 60
-      ThumbHeight = 40
+      Orientation = soVertical
+      IncreaseToward = itUp
+      ThumbWidth = 40
+      ThumbHeight = 60
       TransparentColor = clBlack
-      ThumbPictureHorz.Data = {
-        07544269746D617012010000424D120100000000000076000000280000001300
-        00000D00000001000400000000009C000000330B0000330B0000100000001000
-        000000000000959595009B9B9B00A2A2A200B9B9B900C4C4C400FFFFFF00FFFF
-        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-        FF00055555554445555555000000531425454045452413500000531425454045
-        4524135000005314254540454524135000005314254540454524135000005314
-        2545404545241350000053142545404545241350000053142545404545241350
-        0000531425454045452413500000531425454045452413500000531425454045
-        452413500000531425454045452413500000055555554445555555000000}
+      ThumbPictureVert.Data = {
+        07544269746D61700E010000424D0E0100000000000076000000280000000D00
+        000013000000010004000000000098000000330B0000330B0000100000001000
+        000000000000959595009B9B9B00A2A2A200B9B9B900BFBFBF00C4C4C400C9C9
+        C900CECECE00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00044444444444000048888888888840004777777777774000455555555555
+        4000477777777777400045555555555540004777777777774000455555555555
+        4000477777777777500050000000000050005444444444445000555555555555
+        5000544444444444500055555555555550005222222222225000544444444444
+        5000511111111111500053333333333350000555555555550000}
       ShowTicks = True
       TickCount = 50
       DbFloor = -50.000000000000000000
@@ -819,12 +918,13 @@ object HEOSForm: THEOSForm
       TickColor = clAqua
       TickLabelsVisible = False
       TickPlacementH = tphBoth
+      TickPlacementV = tpvBoth
       OnChange = ToneChange
       OnDblClick = ToneDblClick
     end
     object btnTone: TDnButton
-      Left = 509
-      Top = 204
+      Left = 439
+      Top = 211
       Width = 64
       Height = 50
       Hint = 'Enable Bass/Treble'
@@ -914,6 +1014,8 @@ object HEOSForm: THEOSForm
         170000171A1D202121201D1A17000015181B1F20201F1B181500001016191C1E
         1E1C1916100000001116181A1A18161100000000001015171715100000000000
         00000000000000000000}
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -937,7 +1039,7 @@ object HEOSForm: THEOSForm
     end
     object btnStop: TDnButton
       Tag = 4
-      Left = 649
+      Left = 726
       Top = 44
       Width = 64
       Height = 50
@@ -947,6 +1049,8 @@ object HEOSForm: THEOSForm
       ColorWhenDown = clMaroon
       ColorWhenUp = clRed
       Behavior = bbPushButton
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clMoneyGreen
       Font.Height = -13
@@ -966,7 +1070,7 @@ object HEOSForm: THEOSForm
       OnClick = StreamClick
     end
     object btnPlayPause: TDnButton
-      Left = 579
+      Left = 656
       Top = 44
       Width = 64
       Height = 50
@@ -976,6 +1080,8 @@ object HEOSForm: THEOSForm
       ColorWhenDown = 20480
       ColorWhenUp = clGreen
       Behavior = bbPushButton
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clMoneyGreen
       Font.Height = -13
@@ -995,7 +1101,7 @@ object HEOSForm: THEOSForm
       OnClick = PlayPauseClick
     end
     object btnLoadFile: TDnButton
-      Left = 509
+      Left = 586
       Top = 44
       Width = 64
       Height = 50
@@ -1005,6 +1111,8 @@ object HEOSForm: THEOSForm
       ColorWhenDown = 8931846
       ColorWhenUp = 15368203
       Behavior = bbPushButton
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clMoneyGreen
       Font.Height = -13
@@ -1026,7 +1134,7 @@ object HEOSForm: THEOSForm
     end
     object btnPlayList: TDnButton
       Left = 439
-      Top = 124
+      Top = 127
       Width = 64
       Height = 50
       Alignment = taCenter
@@ -1115,6 +1223,8 @@ object HEOSForm: THEOSForm
         170000171A1D202121201D1A17000015181B1F20201F1B181500001016191C1E
         1E1C1916100000001116181A1A18161100000000001015171715100000000000
         00000000000000000000}
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -1139,7 +1249,7 @@ object HEOSForm: THEOSForm
     object btnPrevious: TDnButton
       Tag = -1
       Left = 509
-      Top = 124
+      Top = 127
       Width = 64
       Height = 50
       Alignment = taCenter
@@ -1148,6 +1258,8 @@ object HEOSForm: THEOSForm
       ColorWhenDown = 10045252
       ColorWhenUp = 6899524
       Behavior = bbPushButton
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -1183,7 +1295,7 @@ object HEOSForm: THEOSForm
     object btnNext: TDnButton
       Tag = 1
       Left = 579
-      Top = 124
+      Top = 127
       Width = 64
       Height = 50
       Alignment = taCenter
@@ -1192,6 +1304,8 @@ object HEOSForm: THEOSForm
       ColorWhenDown = 10045252
       ColorWhenUp = 6899524
       Behavior = bbPushButton
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -1226,7 +1340,7 @@ object HEOSForm: THEOSForm
     end
     object btnShuffle: TDnButton
       Left = 649
-      Top = 124
+      Top = 127
       Width = 64
       Height = 50
       Alignment = taCenter
@@ -1315,6 +1429,8 @@ object HEOSForm: THEOSForm
         170000171A1D202121201D1A17000015181B1F20201F1B181500001016191C1E
         1E1C1916100000001116181A1A18161100000000001015171715100000000000
         00000000000000000000}
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -1336,7 +1452,7 @@ object HEOSForm: THEOSForm
     end
     object btnLoop: TDnButton
       Left = 649
-      Top = 204
+      Top = 210
       Width = 64
       Height = 50
       Alignment = taCenter
@@ -1425,6 +1541,8 @@ object HEOSForm: THEOSForm
         170000171A1D202121201D1A17000015181B1F20201F1B181500001016191C1E
         1E1C1916100000001116181A1A18161100000000001015171715100000000000
         00000000000000000000}
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -1452,10 +1570,12 @@ object HEOSForm: THEOSForm
       Hint = 'Stream Windows audio from this device.'
       Alignment = taCenter
       Caption = 'Stream Windows'
-      Color = 15368203
+      Color = 7086848
       ColorWhenDown = 8931846
-      ColorWhenUp = 15368203
+      ColorWhenUp = 7086848
       Behavior = bbCheckBox
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clMoneyGreen
       Font.Height = -13
@@ -1479,9 +1599,9 @@ object HEOSForm: THEOSForm
     end
     object tbVolume: TDnTrackBar
       Left = 50
-      Top = 59
+      Top = 68
       Width = 47
-      Height = 408
+      Height = 403
       Hint = 'Main volume: receiver scale 0.0 to 98.0, in steps of 0.5'
       TabOrder = 0
       Color = 4865081
@@ -1523,7 +1643,7 @@ object HEOSForm: THEOSForm
     object pbProgress: TDnLevelProgressBar
       Left = 1
       Top = 1
-      Width = 807
+      Width = 808
       Height = 24
       Align = alTop
       Color = 4865081
@@ -1588,7 +1708,7 @@ object HEOSForm: THEOSForm
     end
     object btnMainZone: TDnButton
       Left = 439
-      Top = 286
+      Top = 295
       Width = 67
       Height = 50
       Alignment = taCenter
@@ -1677,6 +1797,8 @@ object HEOSForm: THEOSForm
         170000171A1D202121201D1A17000015181B1F20201F1B181500001016191C1E
         1E1C1916100000001116181A1A18161100000000001015171715100000000000
         00000000000000000000}
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -1699,7 +1821,7 @@ object HEOSForm: THEOSForm
     end
     object btnZone2: TDnButton
       Left = 512
-      Top = 286
+      Top = 295
       Width = 67
       Height = 50
       Alignment = taCenter
@@ -1788,6 +1910,8 @@ object HEOSForm: THEOSForm
         170000171A1D202121201D1A17000015181B1F20201F1B181500001016191C1E
         1E1C1916100000001116181A1A18161100000000001015171715100000000000
         00000000000000000000}
+      TabStop = True
+      ShowFocusRect = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -13
@@ -1810,8 +1934,8 @@ object HEOSForm: THEOSForm
     end
     object btnMute: TDnButton
       Tag = 5
-      Left = 439
-      Top = 204
+      Left = 41
+      Top = 480
       Width = 64
       Height = 50
       Alignment = taCenter
@@ -1919,11 +2043,127 @@ object HEOSForm: THEOSForm
       ShadowColor = clAqua
       OnClick = ActionClick
     end
+    object btnRadio: TDnButton
+      Left = 509
+      Top = 45
+      Width = 64
+      Height = 50
+      Hint = 'Stream Windows audio from this device.'
+      Alignment = taCenter
+      Caption = 'Radio'
+      Color = 7086848
+      ColorWhenDown = 8931846
+      ColorWhenUp = 7086848
+      Behavior = bbCheckBox
+      GlyphUnchecked.Data = {
+        C6040000424DC60400000000000036040000280000000C0000000C0000000100
+        08000000000090000000330B0000330B00000001000000010000000000000000
+        0C00000C0000000C0C000C0000000C000C000C0C000055555500557555008C61
+        3800000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000060000006E00000078000000940000000000
+        0000060000001A000000230000002C0000004000000049000000520000005C00
+        0000650000006E0000007800000000000000060000001A000000230000003600
+        00008B00000094000000400000009D0000009D0000009D0000009D0000009D00
+        00009D0000009D0000009D1100009D1A00009D6E00009D5C00009D6500009D78
+        00009D7800009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D9D009D9D
+        9D009D9D9D009D9D9D009D9D9D009D9D9D008C999D00353131000C0C0C000000
+        9D00009D0000009D9D009D0000009D009D009D9D00009D9D9D00000000000000
+        00000000000000000016161616161600000000001616242B2B24161600000016
+        16242F33332F241616000016172D343737342D17160000162A30383A3A38302A
+        160000162A2D383939382D2A16000016172D343737342D171600001616172D2D
+        2D2D171616000000161617181817161600000000001616161616160000000000
+        00000000000000000000}
+      GlyphChecked.Data = {
+        C6040000424DC60400000000000036040000280000000C0000000C0000000100
+        08000000000090000000230B0000230B00000001000000010000000000000000
+        80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
+        A600DE8C42004242390052423900634A42007B524200945A4200B56B4200BD6B
+        4200C6734200CE7B4200DE8C4200AD634A00AD6B4A00C6734A00D67B4A00D684
+        4A00DE8C4A00C6735200DEA55200E7A55200DEAD5200DEC66300DECE6B00E7D6
+        7300EFEF9400FFFFB500FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00F0FBFF00A4A0A000808080000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00000000000000
+        0000000000000000001013191913100000000000121A1C1E1E1C1A1200000010
+        1A1C1F20201F1C1A100000181C1F212222211F1C180000191E2022232322201E
+        190000191E2022232322201E190000181C1F212222211F1C180000101A1C1F20
+        201F1C1A10000000121A1C1E1E1C1A1200000000001013191913100000000000
+        00000000000000000000}
+      TabStop = True
+      ShowFocusRect = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clMoneyGreen
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clBlack
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      Layout = blGlyphTop
+      LightColor = clSkyBlue
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clAqua
+      ShowHint = True
+      WordWrap = True
+      OnClick = RadioClick
+    end
   end
   object Panel3: TPanel
     Left = 0
     Top = 0
-    Width = 809
+    Width = 810
     Height = 33
     Align = alTop
     BevelOuter = bvNone
@@ -1932,6 +2172,7 @@ object HEOSForm: THEOSForm
     ParentShowHint = False
     ShowHint = True
     TabOrder = 2
+    OnMouseDown = Panel3MouseDown
     object imgLogo: TImage
       Left = 0
       Top = 0
@@ -1979,35 +2220,29 @@ object HEOSForm: THEOSForm
         DFFAD155EF19B8D267FFD9}
       Stretch = True
       Transparent = True
+      OnMouseDown = imgLogoMouseDown
       ExplicitLeft = 2
       ExplicitHeight = 51
     end
-    object lblAppTitle: TLabel
-      Left = -2
-      Top = -2
-      Width = 105
-      Height = 35
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
+    object lblFrmCaption: TLabel
+      Left = 1
+      Top = 0
+      Width = 104
+      Height = 15
       ParentCustomHint = False
       Alignment = taCenter
       AutoSize = False
-      BiDiMode = bdLeftToRight
       Caption = 'HEOS Remote'
-      Color = clBlack
+      Color = 4865081
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = 9891585
-      Font.Height = -12
+      Font.Color = clAqua
+      Font.Height = -11
       Font.Name = 'Segoe UI'
-      Font.Style = [fsBold, fsItalic]
-      ParentBiDiMode = False
+      Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
       ParentShowHint = False
-      ShowHint = False
-      WordWrap = True
+      ShowHint = True
     end
     object btnSettings: TDnButton
       Left = 339
@@ -2111,38 +2346,132 @@ object HEOSForm: THEOSForm
       Transparent = True
       OnClick = PlaylistClick
     end
+    object btnClose: TDnButton
+      Left = 766
+      Top = 0
+      Width = 44
+      Height = 33
+      Align = alRight
+      Alignment = taCenter
+      Caption = ''
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      Glyph.Data = {
+        42010000424D4201000000000000760000002800000011000000110000000100
+        040000000000CC000000C40E0000C40E00001000000000000000000000000000
+        8000008000000080800080000000800080008080000080808000C0C0C0000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00099900000000
+        0999000000009999900000009999900000009999990000099999900000009999
+        9990009999999000000009999999099999990000000000999999999999900000
+        0000000999999999990000000000000099999999900000000000000009999999
+        0000000000000000999999999000000000000009999999999900000000000099
+        9999999999900000000009999999099999990000000099999990009999999000
+        0000999999000009999990000000999990000000999990000000099900000000
+        099900000000}
+      GlyphTransparentColor = clBlack
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      NumGlyphs = 1
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = btnCloseClick
+    end
+    object btnMinimize: TDnButton
+      Left = 722
+      Top = 0
+      Width = 44
+      Height = 33
+      Align = alRight
+      Alignment = taCenter
+      Caption = ''
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      Glyph.Data = {
+        42010000424D4201000000000000760000002800000011000000110000000100
+        040000000000CC000000C40E0000C40E00001000000000000000000000000000
+        8000008000000080800080000000800080008080000080808000C0C0C0000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000777777777777777770000000FFFFFFFFFFFFFFFFF0000000FFFFFFFFFFFF
+        FFFFF0000000FFFFFFFFFFFFFFFFF00000007777777777777777700000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000}
+      GlyphTransparentColor = clBlack
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      NumGlyphs = 1
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = btnMinimizeClick
+    end
   end
   object VolumeTimer: TTimer
     Enabled = False
     Interval = 150
     OnTimer = VolumeTick
-    Left = 668
-    Top = 4
+    Left = 694
+    Top = 396
   end
   object StreamTimer: TTimer
     Interval = 500
     OnTimer = StreamTick
-    Left = 736
-    Top = 4
+    Left = 760
+    Top = 396
   end
   object pmPlaylists: TPopupMenu
     AutoHotkeys = maManual
     OnPopup = PlaylistPopup
-    Left = 514
-    Top = 4
+    Left = 530
+    Top = 396
   end
   object StreamActionTimer: TTimer
     Enabled = False
     Interval = 25
     OnTimer = StreamActionTick
-    Left = 590
-    Top = 4
+    Left = 608
+    Top = 396
   end
   object SeekHintTimer: TTimer
     Enabled = False
     Interval = 75
     OnTimer = SeekHintTick
-    Left = 472
-    Top = 4
+    Left = 456
+    Top = 396
   end
 end

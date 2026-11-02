@@ -1,7 +1,10 @@
-﻿program HEOSRemote;
+program HEOSRemote;
 
 uses
   Vcl.Forms,
+  HEOSRadioArtwork in 'HEOSRadioArtwork.pas',
+  HEOSRadioStreamProbe in 'HEOSRadioStreamProbe.pas',
+  HEOSRadioForm in 'HEOSRadioForm.pas',
   HEOSTransport in 'HEOSTransport.pas',
   HEOSAudioServer in 'HEOSAudioServer.pas',
   Heos in 'Heos.pas',
@@ -31,7 +34,7 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.Title := 'HEOS Remote';
+  Application.Title := 'HEOS Remote 1.1.13';
   Application.CreateForm(THEOSForm, HEOSForm);
   try
     Application.Run;

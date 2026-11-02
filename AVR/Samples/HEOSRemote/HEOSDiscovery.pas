@@ -1,4 +1,4 @@
-﻿// FactoryX
+// FactoryX
 //
 // Copyright: FactoryX. All rights reserved.
 //
@@ -75,6 +75,7 @@ type
     Address: string;
     Name: string;
     Model: string;
+    DeviceId: string;
     AvrAvailable: Boolean;
   end;
 
@@ -159,6 +160,7 @@ begin
   Device := Default(THEOSDevice);
   Description := LowerCase(Xml);
   Device.Model := XmlText(Xml, 'modelName');
+  Device.DeviceId := XmlText(Xml, 'UDN');
   Result := IPv4Valid(Address) and
             (Pos('urn:schemas-denon-com:device:act-denon:1', Description) > 0);
   if not Result then

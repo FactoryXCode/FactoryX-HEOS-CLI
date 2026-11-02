@@ -1,4 +1,4 @@
-﻿object HEOSPlaylistEditor: THEOSPlaylistEditor
+object HEOSPlaylistEditor: THEOSPlaylistEditor
   Left = 0
   Top = 0
   Margins.Left = 0
@@ -29,6 +29,324 @@
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 16
+  object pnlTop: TPanel
+    Left = 0
+    Top = 37
+    Width = 1264
+    Height = 106
+    Align = alTop
+    BevelOuter = bvNone
+    Color = 5850948
+    ParentBackground = False
+    TabOrder = 0
+    object lblSearch: TLabel
+      Left = 15
+      Top = 21
+      Width = 81
+      Height = 21
+      Hint = 'Search for a name, title etc.'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Search for:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+    end
+    object Label1: TLabel
+      Left = 15
+      Top = 71
+      Width = 81
+      Height = 21
+      Hint = 'Search for a name, title etc.'
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'File:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+    end
+    object edtSearch: TEdit
+      Left = 102
+      Top = 18
+      Width = 320
+      Height = 27
+      Hint = 'Search for a name, title etc.'
+      Alignment = taCenter
+      AutoSize = False
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+    end
+    object pnlPlaylist: TPanel
+      Left = 639
+      Top = 0
+      Width = 625
+      Height = 106
+      Align = alRight
+      Color = 5850948
+      ParentBackground = False
+      TabOrder = 1
+      ExplicitLeft = 640
+      object lblPlaylist: TLabel
+        Left = 4
+        Top = 19
+        Width = 62
+        Height = 23
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = 'Playlist:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Layout = tlCenter
+      end
+      object lblPlayListDuration: TLabel
+        Left = 15
+        Top = 72
+        Width = 123
+        Height = 16
+        Caption = 'Playlist Duration: 0'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Layout = tlCenter
+      end
+      object cbPlaylists: TComboBox
+        Left = 72
+        Top = 19
+        Width = 321
+        Height = 22
+        Hint = 'Select a playlist'
+        Style = csOwnerDrawFixed
+        Color = 9216
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clAqua
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+        OnChange = cbPlaylistsChange
+        OnDblClick = cbPlaylistsDblClick
+      end
+      object btnNewPlaylist: TDnButton
+        Left = 399
+        Top = 13
+        Width = 100
+        Height = 33
+        Hint = 'Add a new playlist.'
+        Alignment = taCenter
+        Caption = 'New'
+        Color = 5914932
+        ColorWhenDown = 11363625
+        ColorWhenUp = 5914932
+        Behavior = bbPushButton
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        GlyphTransparentColor = clFuchsia
+        GlyphTransparent = True
+        HotTrackFont.Charset = DEFAULT_CHARSET
+        HotTrackFont.Color = clWindowText
+        HotTrackFont.Height = -13
+        HotTrackFont.Name = 'Segoe UI'
+        HotTrackFont.Style = []
+        LightColor = 12348265
+        ParentColor = False
+        ParentFont = False
+        ParentShowHint = False
+        ShadowColor = clSkyBlue
+        ShowHint = True
+        Style = bsModern
+        Transparent = True
+        OnClick = btnNewPlaylistClick
+      end
+      object btnDeletePlaylist: TDnButton
+        Left = 505
+        Top = 13
+        Width = 100
+        Height = 33
+        Hint = 'Delete current playlist'
+        Alignment = taCenter
+        Caption = 'Delete'
+        Color = 5914932
+        ColorWhenDown = 11363625
+        ColorWhenUp = 5914932
+        Behavior = bbPushButton
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWhite
+        Font.Height = -13
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        GlyphTransparentColor = clFuchsia
+        GlyphTransparent = True
+        HotTrackFont.Charset = DEFAULT_CHARSET
+        HotTrackFont.Color = clWindowText
+        HotTrackFont.Height = -13
+        HotTrackFont.Name = 'Segoe UI'
+        HotTrackFont.Style = []
+        LightColor = 12348265
+        ParentColor = False
+        ParentFont = False
+        ParentShowHint = False
+        ShadowColor = clSkyBlue
+        ShowHint = True
+        Style = bsModern
+        Transparent = True
+        OnClick = btnDeletePlaylistClick
+      end
+    end
+    object edFileName: TEdit
+      Left = 101
+      Top = 68
+      Width = 427
+      Height = 26
+      Hint = 'Search for an audiofile'
+      Alignment = taCenter
+      AutoSize = False
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ReadOnly = True
+      ShowHint = True
+      TabOrder = 2
+      OnMouseDown = edFileNameMouseDown
+    end
+    object btnSearch: TDnButton
+      Left = 428
+      Top = 15
+      Width = 100
+      Height = 33
+      Hint = 'Search in the database for an artist, title etc.'
+      Alignment = taCenter
+      Caption = 'Search'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clFuchsia
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = btnSearchClick
+    end
+    object btnClearSearch: TDnButton
+      Left = 534
+      Top = 15
+      Width = 100
+      Height = 33
+      Hint = 'Settings'
+      Alignment = taCenter
+      Caption = 'Clear'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clFuchsia
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = btnClearSearchClick
+    end
+    object btnOpenFile: TDnButton
+      Left = 534
+      Top = 64
+      Width = 100
+      Height = 33
+      Hint = 'Search for an audiofile.'
+      Alignment = taCenter
+      Caption = 'Open File'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clFuchsia
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = btnOpenFileClick
+    end
+  end
   object pnlClient: TPanel
     Left = 0
     Top = 143
@@ -38,14 +356,13 @@
     BevelOuter = bvNone
     TabOrder = 2
     object splLeft: TSplitter
-      Left = 520
+      Left = 636
       Top = 0
-      Width = 5
+      Width = 2
       Height = 549
-      Color = clGray
+      Color = 5850948
       MinSize = 5
       ParentColor = False
-      ExplicitHeight = 643
     end
     object pnlLibrary: TPanel
       Left = 0
@@ -86,18 +403,19 @@
         OnMouseDown = grdLibraryMouseDown
         OnSelectCell = grdLibrarySelectCell
         OnSetEditText = grdLibrarySetEditText
+        ExplicitWidth = 519
       end
     end
     object pnlActions: TPanel
-      Left = 525
+      Left = 520
       Top = 0
-      Width = 119
+      Width = 116
       Height = 549
       Align = alLeft
       Color = 5850948
       ParentBackground = False
       TabOrder = 1
-      ExplicitLeft = 526
+      ExplicitLeft = 522
       object btnTagEditor: TDnButton
         Left = 9
         Top = 12
@@ -476,9 +794,9 @@
       end
     end
     object grdPlaylist: TStringGrid
-      Left = 644
+      Left = 638
       Top = 0
-      Width = 620
+      Width = 626
       Height = 549
       Margins.Left = 0
       Margins.Top = 0
@@ -502,322 +820,9 @@
       ParentFont = False
       TabOrder = 2
       OnMouseDown = grdPlaylistMouseDown
-    end
-  end
-  object pnlTop: TPanel
-    Left = 0
-    Top = 37
-    Width = 1264
-    Height = 106
-    Align = alTop
-    BevelOuter = bvNone
-    Color = 5850948
-    ParentBackground = False
-    TabOrder = 0
-    object lblSearch: TLabel
-      Left = 15
-      Top = 21
-      Width = 81
-      Height = 21
-      Hint = 'Search for a name, title etc.'
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Search for:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = True
-    end
-    object Label1: TLabel
-      Left = 15
-      Top = 71
-      Width = 81
-      Height = 21
-      Hint = 'Search for a name, title etc.'
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'File:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = True
-    end
-    object edtSearch: TEdit
-      Left = 102
-      Top = 18
-      Width = 320
-      Height = 27
-      Hint = 'Search for a name, title etc.'
-      Alignment = taCenter
-      AutoSize = False
-      Color = 9216
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 0
-    end
-    object pnlPlaylist: TPanel
-      Left = 640
-      Top = 2
-      Width = 622
-      Height = 108
-      Color = 5850948
-      ParentBackground = False
-      TabOrder = 1
-      object lblPlaylist: TLabel
-        Left = 4
-        Top = 19
-        Width = 62
-        Height = 23
-        Alignment = taRightJustify
-        AutoSize = False
-        Caption = 'Playlist:'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWhite
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-        Layout = tlCenter
-      end
-      object lblPlayListDuration: TLabel
-        Left = 15
-        Top = 72
-        Width = 123
-        Height = 16
-        Caption = 'Playlist Duration: 0'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clAqua
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-        Layout = tlCenter
-      end
-      object cbPlaylists: TComboBox
-        Left = 72
-        Top = 19
-        Width = 321
-        Height = 22
-        Hint = 'Select a playlist'
-        Style = csOwnerDrawFixed
-        Color = 9216
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clAqua
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 0
-        OnChange = cbPlaylistsChange
-        OnDblClick = cbPlaylistsDblClick
-      end
-      object btnNewPlaylist: TDnButton
-        Left = 399
-        Top = 13
-        Width = 100
-        Height = 33
-        Hint = 'Add a new playlist.'
-        Alignment = taCenter
-        Caption = 'New'
-        Color = 5914932
-        ColorWhenDown = 11363625
-        ColorWhenUp = 5914932
-        Behavior = bbPushButton
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWhite
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = [fsBold]
-        GlyphTransparentColor = clFuchsia
-        GlyphTransparent = True
-        HotTrackFont.Charset = DEFAULT_CHARSET
-        HotTrackFont.Color = clWindowText
-        HotTrackFont.Height = -13
-        HotTrackFont.Name = 'Segoe UI'
-        HotTrackFont.Style = []
-        LightColor = 12348265
-        ParentColor = False
-        ParentFont = False
-        ParentShowHint = False
-        ShadowColor = clSkyBlue
-        ShowHint = True
-        Style = bsModern
-        Transparent = True
-        OnClick = btnNewPlaylistClick
-      end
-      object btnDeletePlaylist: TDnButton
-        Left = 505
-        Top = 13
-        Width = 100
-        Height = 33
-        Hint = 'Delete current playlist'
-        Alignment = taCenter
-        Caption = 'Delete'
-        Color = 5914932
-        ColorWhenDown = 11363625
-        ColorWhenUp = 5914932
-        Behavior = bbPushButton
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWhite
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = [fsBold]
-        GlyphTransparentColor = clFuchsia
-        GlyphTransparent = True
-        HotTrackFont.Charset = DEFAULT_CHARSET
-        HotTrackFont.Color = clWindowText
-        HotTrackFont.Height = -13
-        HotTrackFont.Name = 'Segoe UI'
-        HotTrackFont.Style = []
-        LightColor = 12348265
-        ParentColor = False
-        ParentFont = False
-        ParentShowHint = False
-        ShadowColor = clSkyBlue
-        ShowHint = True
-        Style = bsModern
-        Transparent = True
-        OnClick = btnDeletePlaylistClick
-      end
-    end
-    object edFileName: TEdit
-      Left = 101
-      Top = 68
-      Width = 427
-      Height = 26
-      Hint = 'Search for an audiofile'
-      Alignment = taCenter
-      AutoSize = False
-      Color = 9216
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      ParentShowHint = False
-      ReadOnly = True
-      ShowHint = True
-      TabOrder = 2
-      OnMouseDown = edFileNameMouseDown
-    end
-    object btnSearch: TDnButton
-      Left = 428
-      Top = 15
-      Width = 100
-      Height = 33
-      Hint = 'Search in the database for an artist, title etc.'
-      Alignment = taCenter
-      Caption = 'Search'
-      Color = 5914932
-      ColorWhenDown = 11363625
-      ColorWhenUp = 5914932
-      Behavior = bbPushButton
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      GlyphTransparentColor = clFuchsia
-      GlyphTransparent = True
-      HotTrackFont.Charset = DEFAULT_CHARSET
-      HotTrackFont.Color = clWindowText
-      HotTrackFont.Height = -13
-      HotTrackFont.Name = 'Segoe UI'
-      HotTrackFont.Style = []
-      LightColor = 12348265
-      ParentColor = False
-      ParentFont = False
-      ParentShowHint = False
-      ShadowColor = clSkyBlue
-      ShowHint = True
-      Style = bsModern
-      Transparent = True
-      OnClick = btnSearchClick
-    end
-    object btnClearSearch: TDnButton
-      Left = 534
-      Top = 15
-      Width = 100
-      Height = 33
-      Hint = 'Settings'
-      Alignment = taCenter
-      Caption = 'Clear'
-      Color = 5914932
-      ColorWhenDown = 11363625
-      ColorWhenUp = 5914932
-      Behavior = bbPushButton
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      GlyphTransparentColor = clFuchsia
-      GlyphTransparent = True
-      HotTrackFont.Charset = DEFAULT_CHARSET
-      HotTrackFont.Color = clWindowText
-      HotTrackFont.Height = -13
-      HotTrackFont.Name = 'Segoe UI'
-      HotTrackFont.Style = []
-      LightColor = 12348265
-      ParentColor = False
-      ParentFont = False
-      ParentShowHint = False
-      ShadowColor = clSkyBlue
-      ShowHint = True
-      Style = bsModern
-      Transparent = True
-      OnClick = btnClearSearchClick
-    end
-    object btnOpenFile: TDnButton
-      Left = 534
-      Top = 64
-      Width = 100
-      Height = 33
-      Hint = 'Search for an audiofile.'
-      Alignment = taCenter
-      Caption = 'Open File'
-      Color = 5914932
-      ColorWhenDown = 11363625
-      ColorWhenUp = 5914932
-      Behavior = bbPushButton
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      GlyphTransparentColor = clFuchsia
-      GlyphTransparent = True
-      HotTrackFont.Charset = DEFAULT_CHARSET
-      HotTrackFont.Color = clWindowText
-      HotTrackFont.Height = -13
-      HotTrackFont.Name = 'Segoe UI'
-      HotTrackFont.Style = []
-      LightColor = 12348265
-      ParentColor = False
-      ParentFont = False
-      ParentShowHint = False
-      ShadowColor = clSkyBlue
-      ShowHint = True
-      Style = bsModern
-      Transparent = True
-      OnClick = btnOpenFileClick
+      ExplicitLeft = 637
+      ExplicitTop = 3
+      ExplicitWidth = 625
     end
   end
   object pnlBottom: TPanel
@@ -1035,7 +1040,9 @@
   end
   object dlgImportRDJProPlaylist: TOpenDialog
     DefaultExt = 'db'
-    Filter = 'RDJ Pro database (*.db;*.sqlite;*.sqlite3)|*.db;*.sqlite;*.sqlite3|All files (*.*)|*.*'
+    Filter = 
+      'RDJ Pro database (*.db;*.sqlite;*.sqlite3)|*.db;*.sqlite;*.sqlit' +
+      'e3|All files (*.*)|*.*'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing, ofDontAddToRecent]
     Title = 'Select the RDJ Pro playlist database (RDJLibrary.db)'
     Left = 1120

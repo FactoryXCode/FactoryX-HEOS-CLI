@@ -1,4 +1,11 @@
-# Denon Remote - Delphi XE7 and up VCL
+#
+Version 1.1.1 adds cached receiver-IP validation, INI persistence and DHCP recovery.
+See the [README](README.md) for the startup route and settings location.
+
+Version 1.1 adds the DFM-designed Internet Radio window. See [RADIO.md](RADIO.md)
+for service browsing/search, receiver-direct playback and Win32/Win64 mock tests.
+
+ Denon Remote - Delphi XE7 and up VCL
 
 Receiver controls, music-file playback and live Windows sound for the
 Denon AVR-X2700H DAB. No Indy, BASS, FFmpeg or extra audio DLLs.
@@ -90,7 +97,7 @@ The existing main-form edits and `edHost` component name are preserved.
 
 ## Open and build
 
-Open `DenonRemote.dproj` in the Delphi IDE. Both Win32 and Win64 are supported;
+Open `DenonRemote.dproj` in Delphi XE7. Both Win32 and Win64 are supported;
 the existing project selects Win64 by default.
 Open `MainForm.pas` and press F12 for the editable VCL form. Use Ctrl+F9 to
 compile and F9 to run. Reopen the project if it was already open during this update.

@@ -1,4 +1,4 @@
-﻿# FactoryX AVR control API
+# FactoryX AVR control API
 
 `Avr.Client.pas` and `Avr.Commands.pas` provide the Denon/Marantz AVR text control protocol over TCP port 23, alongside the separate HEOS CLI on port 1255.
 The socket transport is shared with the HEOS library (`Source/Heos.Sockets.pas`).
@@ -12,6 +12,7 @@ Commands, inputs, tone and surround features depend on the product, firmware and
 | File | Purpose |
 |---|---|
 | `Source/Avr.Commands.pas` | Typed command builders, validation and typed reply parser |
+| `Source/Avr.Capabilities.pas` | Background device capability XML, tri-state support and identity-based INI cache |
 | `Source/Avr.Client.pas` | Persistent asynchronous connection, serialized request queue and event delivery |
 | `Samples/AvrCliDemo.dpr` | Read-only console example using the new AVR API |
 | `Samples/HEOSRemote/HEOSRemote.dproj` | Complete original HEOS Remote VCL application, controls and forms |
@@ -22,7 +23,7 @@ Add the repository's `Source` and `AVR/Source` directories to your Delphi unit s
 The projects use relative paths.
   
 The full application sample requires MfPack separately; see [its build instructions](Samples/HEOSRemote/README.md).
-That app preserves its original transport adapters and layouts; it has not been migrated to the new API.
+The original app preserves its command transport adapters and VCL layouts. Capability discovery can be integrated independently of a transport migration.
 
 ## Basic use
 
@@ -178,3 +179,65 @@ Final release date: 30/10/2026
   
 Copyright © FactoryX. All rights reserved.
 
+
+## Device capabilities
+
+`Avr.Capabilities.pas` is independent of VCL and the TCP command client. It reads
+`http://<receiver>:8080/goform/Deviceinfo.xml` through native Windows HTTP services.
+The port is configurable for other firmware. No commands are sent to change power,
+playback or settings. No Indy dependency is required.
+
+```pascal
+uses Avr.Capabilities;
+
+FCapabilities := TAvrCapabilityManager.Create(CacheFile);
+FCapabilities.SelectDevice(ReceiverHost, VerifiedSsdpDeviceId);
+// Cached data is available here; SelectDevice does not contact the receiver.
+FCapabilities.Refresh();
+
+// Existing VCL timer, on the owning thread:
+if FCapabilities.Poll() then
+  UpdateControlAvailability();
+
+if FCapabilities.Support(afZone2) = asUnsupported then
+  btnZone2.Enabled := False;
+```
+
+`TAvrSupport` distinguishes `asUnknown`, `asSupported` and `asUnsupported` for
+Main Zone, Zone 2, Main Zone volume/mute, front-channel balance, tone, bass and treble.
+Missing or unfamiliar fields remain unknown. The initial mapping uses explicit
+zone `Power/Volume/Mute/Control` fields and global `Setup/ToneControl` and
+`Setup/ChannelLevel` descriptions. Balance requires both FL and FR channel entries.
+Per-zone tone flags do not override the receiver's global AVR tone function.
+These are the mapped features, not a full enumeration of every Denon command.
+
+Call `SelectDevice`, `Refresh`, `Poll` and `Support` from the owning thread.
+`Refresh` is nonblocking; workers do not call application callbacks. Changing devices
+retires previous requests without waiting in the UI, and retired results cannot
+replace the current device. Destruction waits for bounded HTTP work to finish.
+Refreshes have connection/send/receive timeouts, a response size limit, an overall
+read deadline and redirect protection. XML declarations of DTDs/entities are rejected.
+All XML interfaces are finalized before a worker releases its COM apartment.
+
+Supply the receiver's verified SSDP/UPnP device ID; the manager does not discover or
+verify the current host's SSDP identity. If XML includes a UDN, it must match.
+Do not derive the UDN from `MacAddress`: the observed receiver's values differ.
+The cache has a schema version, exact identity check, model, firmware, timestamp and
+support states. It is replaced through a temporary file. Empty identities are not
+cached. A failed request or malformed document retains the last valid snapshot;
+`ErrorText` describes the failure and `FromCache` marks restored data.
+
+Capabilities describe support, not current availability. Applications must also
+consider connection status, power, source and sound mode. Keep a timeout separate
+from unsupported functionality. The development HEOS Remote sample in `D:\PROJECTS\FactoryX-HEOS-CLI\AVR\Samples\HEOSRemote`
+uses this manager while preserving its existing VCL design and serial AVR request handling.
+
+Run parser/cache/network regression tests for both Win32 and Win64:
+
+```powershell
+python AVR\Tests\RunCapabilitiesTests.py
+```
+
+Use `--sample-root` and `--mfpack-root` to additionally verify the complete
+HEOS Remote VCL controls and filtering of unsupported TCP commands. Tests use
+local simulators and an anonymized capability fixture from an AVR-X2700H.

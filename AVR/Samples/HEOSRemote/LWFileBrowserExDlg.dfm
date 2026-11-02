@@ -80,7 +80,7 @@ object LWFileBrowserExDlg: TLWFileBrowserExDlg
     end
     object cbxLocations: TComboBox
       Left = 4
-      Top = 30
+      Top = 29
       Width = 266
       Height = 25
       Style = csOwnerDrawFixed
@@ -124,6 +124,7 @@ object LWFileBrowserExDlg: TLWFileBrowserExDlg
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
+      TabOrder = 4
       OnClick = btnGoClick
     end
     object edtIPv4Address: TEdit
@@ -213,6 +214,7 @@ object LWFileBrowserExDlg: TLWFileBrowserExDlg
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
+      TabOrder = 0
       OnClick = btnOkClick
     end
     object btnCancel: TButton
@@ -227,6 +229,7 @@ object LWFileBrowserExDlg: TLWFileBrowserExDlg
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
+      TabOrder = 1
       OnClick = btnCancelClick
     end
   end
