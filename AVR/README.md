@@ -167,17 +167,8 @@ The full application is built separately with its sample-local `Build.ps1 -MfPac
 
 ## References and notices
 
-The common AVR command framing and level encoding are documented in Denon's [AVR/AVC control protocol](https://downloads.denon.com/documentmaster/us/avr987serialprotocol.pdf). The modern tone, zone and surround commands included here also follow the working AVR-X2700H application implementation. That older protocol document is not an exhaustive command list for newer models. HEOS commands remain documented separately in the main repository README and command catalog.
-
-Project: FactoryX - HEOS CLI  
-  
-Project location:    
-https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
-  
-First release date: 13/08/2026  
-Final release date: 30/10/2026  
-  
-Copyright © FactoryX. All rights reserved.
+The common AVR command framing and level encoding are documented in Denon's [AVR/AVC control protocol](https://downloads.denon.com/documentmaster/us/avr987serialprotocol.pdf).
+The modern tone, zone and surround commands included here also were tested on a AVR-X2700H receiver. That older protocol document is not an exhaustive command list for newer models. HEOS commands remain documented separately in the main repository README and command catalog.
 
 
 ## Device capabilities
@@ -229,7 +220,8 @@ cached. A failed request or malformed document retains the last valid snapshot;
 
 Capabilities describe support, not current availability. Applications must also
 consider connection status, power, source and sound mode. Keep a timeout separate
-from unsupported functionality. The development HEOS Remote sample in `D:\PROJECTS\FactoryX-HEOS-CLI\AVR\Samples\HEOSRemote`
+from unsupported functionality.
+The development HEOS Remote sample in `..\FactoryX-HEOS-CLI\AVR\Samples\HEOSRemote`
 uses this manager while preserving its existing VCL design and serial AVR request handling.
 
 Run parser/cache/network regression tests for both Win32 and Win64:
@@ -239,5 +231,18 @@ python AVR\Tests\RunCapabilitiesTests.py
 ```
 
 Use `--sample-root` and `--mfpack-root` to additionally verify the complete
-HEOS Remote VCL controls and filtering of unsupported TCP commands. Tests use
-local simulators and an anonymized capability fixture from an AVR-X2700H.
+HEOS Remote VCL controls and filtering of unsupported TCP commands.
+Tests use local simulators and an anonymized capability fixture from an AVR-X2700H receiver.
+  
+  
+Project: FactoryX - HEOS CLI  
+  
+Project location:    
+https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
+  
+First release date: 13/08/2026  
+Final release date: 30/10/2026  
+  
+Copyright © FactoryX. All rights reserved.
+
+
