@@ -55,10 +55,10 @@ station/container IDs, direct station playback, both Stop controls, handover
 from the local queue, live time display and switching back to file controls.
 No physical receiver playback or volume was changed by these tests.
 
-To repeat with Python 3 and Delphi XE7 installed:
+To repeat with Python 3 and Delphi (XE7 as minimum Delphi Version) installed:
 
 ```powershell
-python .\Tests\Run-RadioTests.py --mfpack-root D:\PROJECTS\MfPack --heos-cli-root D:\GitHub\FactoryX-HEOS-CLI
+python .\Tests\Run-RadioTests.py --mfpack-root ..\MfPack --heos-cli-root ..\FactoryX-HEOS-CLI
 ```
 
 The script builds temporary fixture copies under the repository's

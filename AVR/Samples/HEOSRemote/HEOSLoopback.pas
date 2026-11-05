@@ -64,7 +64,7 @@
 // Samples/MfCaptureVideoFromGPU II/WasapiLoopbackCapture.pas.
 // MfPack: FactoryX, Tony Kalf and contributors, MPL 2.0.
 // This standalone worker keeps COM and Media Foundation on one thread and
-// requests a stereo PCM format for the RDJ-derived AAC encoder.
+// captures stereo PCM and encodes the selected AAC bitrate/channel format.
 unit HEOSLoopback;
 
 interface
@@ -88,6 +88,8 @@ type
     FReady: TEvent;
     FError: string;
     FInitializeOnly: Boolean;
+    FBitrateKbps: Integer;
+    FChannels: Integer;
     FInitialized: Boolean;
 
   protected
@@ -96,7 +98,8 @@ type
   public
 
     constructor Create(Server: THEOSAudioServer;
-                       InitializeOnly: Boolean = False);
+                       InitializeOnly: Boolean = False;
+                       ABitrateKbps: Integer = 192; AChannels: Integer = 2);
     destructor Destroy; override;
 
     function Ready(): Boolean;
@@ -135,7 +138,8 @@ begin
                               [Operation, Cardinal(HR)]);
 end;
 
-constructor THEOSLoopback.Create(Server: THEOSAudioServer; InitializeOnly: Boolean);
+constructor THEOSLoopback.Create(Server: THEOSAudioServer; InitializeOnly: Boolean;
+                                 ABitrateKbps: Integer; AChannels: Integer);
 begin
 
   inherited Create(True);
@@ -143,6 +147,8 @@ begin
   FreeOnTerminate := False;
   FServer := Server;
   FInitializeOnly := InitializeOnly;
+  FBitrateKbps := ABitrateKbps;
+  FChannels := AChannels;
   FReady := TEvent.Create(nil, True, False, '');
 end;
 
@@ -201,20 +207,30 @@ var
   begin
 
     SetLength(Samples,
-              Count * 2);
+              Count * FChannels);
 
     if Silent then
       FillChar(Samples[0],
-               Count * 2 * SizeOf(Single),
+               Count * FChannels * SizeOf(Single),
                0)
     else
       begin
         PCM := PSmallInt(Buffer);
-        for Index := 0 to Count * 2 - 1 do
-        begin
-          Samples[Index] := PCM^ / 32768.0;
-          Inc(PCM);
-        end;
+        if (FChannels = 1) then
+          for Index := 0 to Count - 1 do
+            begin
+              // Average both captured channels without altering the device mix.
+              Samples[Index] := PCM^ / 65536.0;
+              Inc(PCM);
+              Samples[Index] := Samples[Index] + PCM^ / 65536.0;
+              Inc(PCM);
+            end
+        else
+          for Index := 0 to Count * 2 - 1 do
+            begin
+              Samples[Index] := PCM^ / 32768.0;
+              Inc(PCM);
+            end;
       end;
 
     CheckHR(Encoder.EncodeInterleavedFloat32(@Samples[0],
@@ -291,8 +307,8 @@ begin
 
       Encoder := THEOSAacEncoder.Create();
       Settings.SampleRate := 44100;
-      Settings.Channels := 2;
-      Settings.BitrateKbps := 192;
+      Settings.Channels := FChannels;
+      Settings.BitrateKbps := FBitrateKbps;
 
       CheckHR(Encoder.Initialize(Settings),
               'Initialize Windows AAC encoder');

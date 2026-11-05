@@ -85,6 +85,7 @@ uses
   Heos,
   HEOSAudioServer,
   HEOSLoopback,
+  HEOSAacEncoder,
   HEOSDiscovery,
   HEOSRadioForm,
   HEOSPlaylistForm,
@@ -203,7 +204,6 @@ type
     lblToneStatus: TLabel;
     DnButton2: TDnButton;
     FSource: TComboBox;
-    chkAutoNextCheck: TCheckBox;
     memFLog: TMemo;
     Label2: TLabel;
     Label3: TLabel;
@@ -226,6 +226,13 @@ type
     lblFrmCaption: TLabel;
     Label8: TLabel;
     Label9: TLabel;
+    chkPlayListAutoNext: TDnButton;
+    Bevel9: TBevel;
+    Label10: TLabel;
+    Label11: TLabel;
+    ComboBox1: TComboBox;
+    Label12: TLabel;
+    ComboBox2: TComboBox;
 
     procedure FormCreate(Sender: TObject);
     procedure pbProgressMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -251,6 +258,7 @@ type
     procedure btnStreamWinAudioClick(Sender: TObject);
     procedure StreamClick(Sender: TObject);
     procedure PlayPauseClick(Sender: TObject);
+    procedure AacSettingsChange(Sender: TObject);
     procedure SettingsClick(Sender: TObject);
     procedure PlayerClick(Sender: TObject);
     procedure RadioClick(Sender: TObject);
@@ -293,6 +301,7 @@ type
                                    StopOnZoneReply: Boolean = False;
                                    StopOnToneReply: Boolean = False): TDenonRequest;
 
+    function TryReadAacSettings(out Settings: TDenonAudioSettings): Boolean;
     procedure LoadReceiverSettings();
     procedure SaveReceiverSettings();
     procedure ContinuePendingRadio();
@@ -1493,6 +1502,8 @@ begin
   if Assigned(FRadioForm) then
     Busy := Busy or FRadioForm.PlaybackPending();
 
+  ComboBox1.Enabled := not Assigned(FLoopback) and not FWaitingForCapture;
+  ComboBox2.Enabled := ComboBox1.Enabled;
   btnStreamWinAudio.Enabled := not Busy;
   btnStreamWinAudio.Checked := Assigned(FAudioServer) and Assigned(FLoopback) and
                                 FLoopback.Ready and FLoopback.Initialized and
@@ -1748,7 +1759,7 @@ begin
   if FQueueNextPending and Assigned(FHeos) and FHeos.Finished then
     begin
       FQueueNextPending := False;
-      if FQueueActive and chkAutoNextCheck.Checked then
+      if FQueueActive and chkPlayListAutoNext.Checked then
         PlayQueueIndex(FQueueIndex + 1);
     end;
 
@@ -2022,7 +2033,7 @@ begin
           Exit;
         end;
 
-      chkAutoNextCheck.Checked := True;
+      chkPlayListAutoNext.Checked := True;
       PlayPlaylist(Sender,
                    Playlist,
                    0);
@@ -3448,6 +3459,39 @@ begin
 end;
 
 
+function THEOSForm.TryReadAacSettings(out Settings: TDenonAudioSettings): Boolean;
+var
+  Text: string;
+begin
+  Settings := Default(TDenonAudioSettings);
+  Settings.SampleRate := 44100;
+  Text := Trim(ComboBox1.Text);
+  if SameText(Copy(Text, Length(Text) - 3, 4), 'Kbps') then
+    Text := Trim(Copy(Text, 1, Length(Text) - 4));
+  Result := TryStrToInt(Text, Settings.BitrateKbps);
+  if not Result then
+    Exit;
+  Result := Settings.BitrateKbps in [96, 128, 160, 192];
+  if SameText(Trim(ComboBox2.Text), 'Stereo') then
+    Settings.Channels := 2
+  else if SameText(Trim(ComboBox2.Text), 'Mono') then
+    Settings.Channels := 1
+  else
+    Result := False;
+end;
+
+
+procedure THEOSForm.AacSettingsChange(Sender: TObject);
+var
+  Settings: TDenonAudioSettings;
+begin
+  // The existing combo boxes allow typing. Save complete valid choices only.
+  if not Assigned(FLoopback) and not FWaitingForCapture and
+     TryReadAacSettings(Settings) then
+    SaveReceiverSettings();
+end;
+
+
 procedure THEOSForm.SettingsClick(Sender: TObject);
 begin
 
@@ -3756,6 +3800,7 @@ procedure THEOSForm.ExecuteStreamAction(Action: Integer);
 var
   Port: Integer;
   LocalIP: string;
+  AudioSettings: TDenonAudioSettings;
 
 begin
 
@@ -3805,6 +3850,9 @@ begin
     if not IPv4Valid(LocalIP) then
       raise Exception.Create('Enter a valid PC IPv4 address or leave it blank for automatic detection');
 
+    if (Action = 1) and not TryReadAacSettings(AudioSettings) then
+      raise Exception.Create('Choose an AAC bitrate of 96, 128, 160 or 192 Kbps and Stereo or Mono channels.');
+
     StopLocalStream();
     FAudioServer := THEOSAudioServer.Create(LocalIP,
                                             Port,
@@ -3815,9 +3863,11 @@ begin
 
     if (Action = 1) then
       begin
-        FStreamDescription := 'Windows sound (default playback device), stereo AAC';
-        lblStreamInfo.Caption := 'Windows sound (default playback device)';
-        FLoopback := THEOSLoopback.Create(FAudioServer);
+        FStreamDescription := Format('Windows sound (default playback device), %d kbps %s AAC',
+                                     [AudioSettings.BitrateKbps, Trim(ComboBox2.Text)]);
+        lblStreamInfo.Caption := FStreamDescription;
+        FLoopback := THEOSLoopback.Create(FAudioServer, False,
+                                          AudioSettings.BitrateKbps, AudioSettings.Channels);
         FWaitingForCapture := True;
         FLoopback.Start();
         lblStreamInfo.Caption := 'Starting Windows audio capture ...';
@@ -3982,6 +4032,17 @@ begin
       FPreferredDeviceId := Settings.ReadString('Receiver',
                                                 'DeviceId',
                                                 '');
+      case Settings.ReadInteger('AAC', 'BitrateKbps', 192) of
+        96: ComboBox1.ItemIndex := 0;
+        128: ComboBox1.ItemIndex := 1;
+        160: ComboBox1.ItemIndex := 2;
+      else
+        ComboBox1.ItemIndex := 3;
+      end;
+      if (Settings.ReadInteger('AAC', 'Channels', 2) = 1) then
+        ComboBox2.ItemIndex := 1
+      else
+        ComboBox2.ItemIndex := 0;
     finally
       Settings.Free;
     end;
@@ -3999,10 +4060,11 @@ end;
 procedure THEOSForm.SaveReceiverSettings();
 var
   Settings: TMemIniFile;
+  AudioSettings: TDenonAudioSettings;
 
 begin
 
-  if (FReceiverSettingsFile = '') or not FReceiverVerified then
+  if (FReceiverSettingsFile = '') then
     Exit;
   try
     if not ForceDirectories(ExtractFilePath(FReceiverSettingsFile)) then
@@ -4012,8 +4074,17 @@ begin
       end;
     Settings := TMemIniFile.Create(FReceiverSettingsFile);
     try
-      Settings.WriteString('Receiver', 'Host', FVerifiedHost);
-      Settings.WriteString('Receiver', 'DeviceId', FPreferredDeviceId);
+      // Audio preferences can be saved before a receiver is connected.
+      if FReceiverVerified then
+        begin
+          Settings.WriteString('Receiver', 'Host', FVerifiedHost);
+          Settings.WriteString('Receiver', 'DeviceId', FPreferredDeviceId);
+        end;
+      if TryReadAacSettings(AudioSettings) then
+        begin
+          Settings.WriteInteger('AAC', 'BitrateKbps', AudioSettings.BitrateKbps);
+          Settings.WriteInteger('AAC', 'Channels', AudioSettings.Channels);
+        end;
       Settings.UpdateFile;
     finally
       Settings.Free;

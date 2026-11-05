@@ -1,6 +1,6 @@
 ﻿# RDJ Pro editor integration
 
-Source: `D:\PROJECTS\MfPack\Samples\MFRDJ Samples\MfRdjPro`.
+Source: `..\MfPack\Samples\MFRDJ Samples\MfRdjPro`.
 The source project is unchanged.
 
 The following local units are byte-for-byte copies: `RDJ.PlaylistTypes`,
@@ -32,13 +32,9 @@ Necessary local adaptations:
   freeing their owners. Library progress queues are associated with their
   thread so destroying the thread removes pending callbacks.
 - The application frees its main form before invoking Pro's FireDAC/SQLite
-  shutdown helper. The XE7 project copies the platform's SQLite DLL on build.
+  shutdown helper. The Delphi project copies the platform's SQLite DLL on build.
 
 Data stays in this application's `Data\RDJLibrary.db` beside its EXE.
-No existing Pro database is copied or changed.
+No existing database is copied or changed.
 
-Validation: XE7 Win32 and Win64 MSBuild; existing playlist/discovery/browser checks;
-5,000-track database fixture testing empty opening/clearing, matching searches,
-playlist edits/order/persistence, Denon routing, and streaming the three DFM
-forms with standard controls on both platforms. Receiver playback was not started
-by these tests.
+

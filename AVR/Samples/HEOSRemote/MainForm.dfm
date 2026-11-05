@@ -21,370 +21,6 @@ object HEOSForm: THEOSForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 17
-  object pnlSettings: TPanel
-    Left = 0
-    Top = 33
-    Width = 810
-    Height = 587
-    Align = alClient
-    Color = 5850948
-    ParentBackground = False
-    TabOrder = 0
-    ExplicitLeft = 1
-    object AddressLabel: TLabel
-      Left = 54
-      Top = 31
-      Width = 97
-      Height = 22
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Receiver IPv4:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object FStatus: TLabel
-      Left = 1
-      Top = 384
-      Width = 808
-      Height = 36
-      Align = alBottom
-      AutoSize = False
-      Caption = 
-        'Ready. Click Read status to connect. Status values are snapshots' +
-        '; they do not update automatically.'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      WordWrap = True
-      ExplicitLeft = 7
-      ExplicitTop = 277
-      ExplicitWidth = 788
-    end
-    object PcAddressLabel: TLabel
-      Left = 30
-      Top = 251
-      Width = 118
-      Height = 17
-      Caption = 'PC IP (blank = auto):'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object PortLabel: TLabel
-      Left = 364
-      Top = 251
-      Width = 62
-      Height = 17
-      Caption = 'HTTP port:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object Label1: TLabel
-      Left = 54
-      Top = 68
-      Width = 97
-      Height = 22
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Select Source'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object edHost: TEdit
-      Left = 157
-      Top = 29
-      Width = 190
-      Height = 25
-      Hint = 'Find the HEOS receiver'#39's IP in the receiver'
-      BevelInner = bvNone
-      BevelKind = bkSoft
-      BevelOuter = bvRaised
-      BorderStyle = bsNone
-      Color = 5850948
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 0
-    end
-    object cbxHEOSDevices: TComboBox
-      Left = 353
-      Top = 28
-      Width = 290
-      Height = 25
-      Style = csDropDownList
-      Color = 5850948
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 1
-      OnChange = HEOSDeviceChange
-    end
-    object PcAddressEdit: TEdit
-      Left = 157
-      Top = 251
-      Width = 185
-      Height = 25
-      BevelInner = bvNone
-      BevelKind = bkSoft
-      BevelOuter = bvRaised
-      BorderStyle = bsNone
-      Color = 5850948
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 2
-      TextHint = '0.0.0.0'
-    end
-    object StreamPortEdit: TEdit
-      Left = 432
-      Top = 251
-      Width = 90
-      Height = 25
-      BevelInner = bvNone
-      BevelKind = bkSoft
-      BevelOuter = bvRaised
-      BorderStyle = bsNone
-      Color = 5850948
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      NumbersOnly = True
-      ParentFont = False
-      TabOrder = 3
-      Text = '8890'
-      TextHint = '8890'
-    end
-    object btnFindHEOSDevice: TDnButton
-      Left = 649
-      Top = 26
-      Width = 122
-      Height = 30
-      Alignment = taCenter
-      Caption = 'Find HEOS Device'
-      Color = 5914932
-      ColorWhenDown = 11363625
-      ColorWhenUp = 5914932
-      Behavior = bbPushButton
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      GlyphTransparentColor = clFuchsia
-      GlyphTransparent = True
-      HotTrackFont.Charset = DEFAULT_CHARSET
-      HotTrackFont.Color = clWindowText
-      HotTrackFont.Height = -13
-      HotTrackFont.Name = 'Segoe UI'
-      HotTrackFont.Style = []
-      LightColor = 12348265
-      ParentColor = False
-      ParentFont = False
-      ParentShowHint = False
-      ShadowColor = clSkyBlue
-      ShowHint = True
-      Style = bsModern
-      Transparent = True
-      OnClick = FindHEOSDeviceClick
-    end
-    object FSource: TComboBox
-      Left = 157
-      Top = 65
-      Width = 285
-      Height = 25
-      Style = csDropDownList
-      Color = 5850948
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ItemIndex = 0
-      ParentFont = False
-      TabOrder = 5
-      Text = 'TV Audio'
-      Items.Strings = (
-        'TV Audio'
-        'Blu-ray'
-        'Game'
-        'Media Player'
-        'CBL/SAT'
-        'CD'
-        'Tuner (DAB/FM)'
-        'HEOS / Network')
-    end
-    object chkAutoNextCheck: TCheckBox
-      AlignWithMargins = True
-      Left = 30
-      Top = 211
-      Width = 140
-      Height = 27
-      Alignment = taLeftJustify
-      Caption = 'Auto-next in playlist:'
-      Checked = True
-      Color = 5850948
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentColor = False
-      ParentFont = False
-      State = cbChecked
-      TabOrder = 6
-      StyleElements = [seClient, seBorder]
-    end
-    object memFLog: TMemo
-      Left = 1
-      Top = 420
-      Width = 808
-      Height = 166
-      Align = alBottom
-      Color = 4410626
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = 9889633
-      Font.Height = -12
-      Font.Name = 'Consolas'
-      Font.Style = []
-      Lines.Strings = (
-        
-          'Native Windows sockets. AVR port 23; HEOS port 1255. No capture ' +
-          'on startup.')
-      ParentFont = False
-      ReadOnly = True
-      ScrollBars = ssVertical
-      TabOrder = 7
-    end
-    object btnSelectInput: TDnButton
-      Tag = 7
-      Left = 157
-      Top = 101
-      Width = 104
-      Height = 25
-      Alignment = taCenter
-      Caption = 'Select input'
-      Color = 5914932
-      ColorWhenDown = 11363625
-      ColorWhenUp = 5914932
-      Behavior = bbPushButton
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      GlyphTransparentColor = clFuchsia
-      GlyphTransparent = True
-      HotTrackFont.Charset = DEFAULT_CHARSET
-      HotTrackFont.Color = clWindowText
-      HotTrackFont.Height = -13
-      HotTrackFont.Name = 'Segoe UI'
-      HotTrackFont.Style = []
-      LightColor = 12348265
-      ParentColor = False
-      ParentFont = False
-      ParentShowHint = False
-      ShadowColor = clSkyBlue
-      ShowHint = True
-      Style = bsModern
-      Transparent = True
-      OnClick = ActionClick
-    end
-    object btnWebInterface: TDnButton
-      Left = 157
-      Top = 142
-      Width = 104
-      Height = 25
-      Alignment = taCenter
-      Caption = 'Web interface'
-      Color = 5914932
-      ColorWhenDown = 11363625
-      ColorWhenUp = 5914932
-      Behavior = bbPushButton
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      GlyphTransparentColor = clFuchsia
-      GlyphTransparent = True
-      HotTrackFont.Charset = DEFAULT_CHARSET
-      HotTrackFont.Color = clWindowText
-      HotTrackFont.Height = -13
-      HotTrackFont.Name = 'Segoe UI'
-      HotTrackFont.Style = []
-      LightColor = 12348265
-      ParentColor = False
-      ParentFont = False
-      ParentShowHint = False
-      ShadowColor = clSkyBlue
-      ShowHint = True
-      Style = bsModern
-      Transparent = True
-      OnClick = BrowserClick
-    end
-    object btnReadStatus: TDnButton
-      Left = 157
-      Top = 180
-      Width = 104
-      Height = 25
-      Alignment = taCenter
-      Caption = 'Read status'
-      Color = 5914932
-      ColorWhenDown = 11363625
-      ColorWhenUp = 5914932
-      Behavior = bbPushButton
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWhite
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = [fsBold]
-      GlyphTransparentColor = clFuchsia
-      GlyphTransparent = True
-      HotTrackFont.Charset = DEFAULT_CHARSET
-      HotTrackFont.Color = clWindowText
-      HotTrackFont.Height = -13
-      HotTrackFont.Name = 'Segoe UI'
-      HotTrackFont.Style = []
-      LightColor = 12348265
-      ParentColor = False
-      ParentFont = False
-      ParentShowHint = False
-      ShadowColor = clSkyBlue
-      ShowHint = True
-      Style = bsModern
-      Transparent = True
-      OnClick = ActionClick
-    end
-  end
   object pnlPlay: TPanel
     Left = 0
     Top = 33
@@ -394,7 +30,6 @@ object HEOSForm: THEOSForm
     Color = 4865081
     ParentBackground = False
     TabOrder = 1
-    ExplicitLeft = 1
     object Bevel8: TBevel
       Left = 579
       Top = 38
@@ -433,7 +68,9 @@ object HEOSForm: THEOSForm
       Align = alBottom
       Alignment = taCenter
       AutoSize = False
-      Caption = 'Choose an audio file, start Windows sound or play a playlist. '
+      Caption = 
+        'Choose an audio file, start Windows sound, play a playlist or st' +
+        'ream a radio station. '
       Color = 4410626
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
@@ -2158,6 +1795,557 @@ object HEOSForm: THEOSForm
       ShowHint = True
       WordWrap = True
       OnClick = RadioClick
+    end
+  end
+  object pnlSettings: TPanel
+    Left = 0
+    Top = 33
+    Width = 810
+    Height = 587
+    Align = alClient
+    Color = 5850948
+    ParentBackground = False
+    TabOrder = 0
+    ExplicitLeft = -1
+    object AddressLabel: TLabel
+      Left = 42
+      Top = 24
+      Width = 97
+      Height = 22
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Receiver IPv4:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object FStatus: TLabel
+      Left = 1
+      Top = 384
+      Width = 808
+      Height = 36
+      Align = alBottom
+      AutoSize = False
+      Caption = 
+        'Ready. Click Read status to connect. Status values are snapshots' +
+        '; they do not update automatically.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      WordWrap = True
+      ExplicitLeft = 7
+      ExplicitTop = 277
+      ExplicitWidth = 788
+    end
+    object PcAddressLabel: TLabel
+      Left = 19
+      Top = 154
+      Width = 118
+      Height = 17
+      Caption = 'PC IP (blank = auto):'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object PortLabel: TLabel
+      Left = 362
+      Top = 154
+      Width = 62
+      Height = 17
+      Caption = 'HTTP port:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label1: TLabel
+      Left = 40
+      Top = 64
+      Width = 97
+      Height = 22
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Select Source:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Bevel9: TBevel
+      Left = 18
+      Top = 211
+      Width = 429
+      Height = 65
+    end
+    object Label10: TLabel
+      Left = 28
+      Top = 202
+      Width = 97
+      Height = 22
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'AAC Settings'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      Transparent = False
+    end
+    object Label11: TLabel
+      Left = 28
+      Top = 239
+      Width = 81
+      Height = 17
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Bit Rate:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label12: TLabel
+      Left = 224
+      Top = 239
+      Width = 81
+      Height = 17
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Channels:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object edHost: TEdit
+      Left = 143
+      Top = 22
+      Width = 190
+      Height = 25
+      Hint = 'Find the HEOS receiver'#39's IP in the receiver'
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvRaised
+      BorderStyle = bsNone
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+    end
+    object cbxHEOSDevices: TComboBox
+      Left = 339
+      Top = 21
+      Width = 290
+      Height = 25
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      OnChange = HEOSDeviceChange
+    end
+    object PcAddressEdit: TEdit
+      Left = 143
+      Top = 154
+      Width = 185
+      Height = 25
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvRaised
+      BorderStyle = bsNone
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      TextHint = '0.0.0.0'
+    end
+    object StreamPortEdit: TEdit
+      Left = 430
+      Top = 151
+      Width = 90
+      Height = 25
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvRaised
+      BorderStyle = bsNone
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      NumbersOnly = True
+      ParentFont = False
+      TabOrder = 3
+      Text = '8890'
+      TextHint = '8890'
+    end
+    object btnFindHEOSDevice: TDnButton
+      Left = 635
+      Top = 19
+      Width = 104
+      Height = 28
+      Hint = 'Find HEOS devices.'
+      Alignment = taCenter
+      Caption = 'Find Devices'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clFuchsia
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = FindHEOSDeviceClick
+    end
+    object FSource: TComboBox
+      Left = 143
+      Top = 61
+      Width = 285
+      Height = 25
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ItemIndex = 0
+      ParentFont = False
+      TabOrder = 5
+      Text = 'TV Audio'
+      Items.Strings = (
+        'TV Audio'
+        'Blu-ray'
+        'Game'
+        'Media Player'
+        'CBL/SAT'
+        'CD'
+        'Tuner (DAB/FM)'
+        'HEOS / Network')
+    end
+    object memFLog: TMemo
+      Left = 1
+      Top = 420
+      Width = 808
+      Height = 166
+      Align = alBottom
+      Color = 4410626
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 9889633
+      Font.Height = -12
+      Font.Name = 'Consolas'
+      Font.Style = []
+      Lines.Strings = (
+        
+          'Native Windows sockets. AVR port 23; HEOS port 1255. No capture ' +
+          'on startup.')
+      ParentFont = False
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 6
+    end
+    object btnSelectInput: TDnButton
+      Tag = 7
+      Left = 443
+      Top = 61
+      Width = 104
+      Height = 28
+      Alignment = taCenter
+      Caption = 'Select input'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clFuchsia
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = ActionClick
+    end
+    object btnWebInterface: TDnButton
+      Left = 143
+      Top = 104
+      Width = 104
+      Height = 28
+      Alignment = taCenter
+      Caption = 'Web interface'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clFuchsia
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = BrowserClick
+    end
+    object btnReadStatus: TDnButton
+      Left = 258
+      Top = 104
+      Width = 104
+      Height = 28
+      Alignment = taCenter
+      Caption = 'Read status'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbPushButton
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clFuchsia
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      OnClick = ActionClick
+    end
+    object chkPlayListAutoNext: TDnButton
+      Left = 375
+      Top = 104
+      Width = 104
+      Height = 28
+      Hint = 'Auto-next in playlist.'
+      Alignment = taCenter
+      Caption = 'Auto-next'
+      Color = 5914932
+      ColorWhenDown = 11363625
+      ColorWhenUp = 5914932
+      Behavior = bbCheckBox
+      Checked = True
+      GlyphUnchecked.Data = {
+        C6040000424DC60400000000000036040000280000000C0000000C0000000100
+        08000000000090000000130B0000130B00000001000000010000000000000000
+        80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
+        A600FFFFFF00000021000000290000004A0000005A000000630000006B000008
+        6B0000106B0000296B00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00F0FBFF00A4A0A000808080000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00000000000000
+        0000000000000000000C0D0E0E0D0C00000000000B0D0E0F0F0E0D0B0000000B
+        0D0F101212100F0D0B00000D0E1010131310100E0D00000E0F1113101013110F
+        0E00000E0F1113101013110F0E00000D0E1010131310100E0D0000000D0F1012
+        12100F0D00000000000D0E0F0F0E0D000000000000000D0E0E0D0C0000000000
+        00000000000000000000}
+      GlyphChecked.Data = {
+        C6040000424DC60400000000000036040000280000000C0000000C0000000100
+        08000000000090000000130B0000130B00000001000000010000000000000000
+        80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
+        A600004ABD0094081800841839006B184A006B296B0042297B00524A94006B4A
+        94001839A5001842A500004ABD00315ABD005A6BBD00296BCE005A84D6007B94
+        D6005A94E70084B5EF0094B5EF0094C6F700A5C6F700BDD6F700D6EFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+        FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00F0FBFF00A4A0A000808080000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF000000000F130A
+        0A130F00000000000E1015171715100E0000000E1116181A1A1816110E000F10
+        16191C1E1E1C1916100F1315181B1F20201F1B1815130A171A1D202121201D1A
+        170A0A171A1D202121201D1A170A1315181B1F20201F1B1815130F1016191C1E
+        1E1C1916100F000E1116181A1A1816110E0000000E1015171715100E00000000
+        000F130A0A130F000000}
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      GlyphTransparentColor = clBlack
+      GlyphTransparent = True
+      HotTrackFont.Charset = DEFAULT_CHARSET
+      HotTrackFont.Color = clWindowText
+      HotTrackFont.Height = -13
+      HotTrackFont.Name = 'Segoe UI'
+      HotTrackFont.Style = []
+      LightColor = 12348265
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShadowColor = clSkyBlue
+      ShowHint = True
+      Style = bsModern
+      Transparent = True
+      WordWrap = True
+    end
+    object ComboBox1: TComboBox
+      Left = 115
+      Top = 236
+      Width = 101
+      Height = 25
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ItemIndex = 3
+      ParentFont = False
+      TabOrder = 11
+      Text = '192 Kbps'
+      OnChange = AacSettingsChange
+      Items.Strings = (
+        '96   Kbps'
+        '128 Kbps'
+        '160 Kbps'
+        '192 Kbps')
+    end
+    object ComboBox2: TComboBox
+      Left = 311
+      Top = 236
+      Width = 99
+      Height = 25
+      Color = 9216
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ItemIndex = 0
+      ParentFont = False
+      TabOrder = 12
+      Text = 'Stereo'
+      OnChange = AacSettingsChange
+      Items.Strings = (
+        'Stereo'
+        'Mono')
     end
   end
   object Panel3: TPanel
