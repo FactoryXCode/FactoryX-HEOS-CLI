@@ -62,9 +62,9 @@ unit HEOS.UPnP;
 
 interface
 
-procedure SeekReceiverPosition(const AHost: string;
+function TrySeekReceiverPosition(const AHost: string;
                                  const APositionMs: Int64;
-                                 APort: Word = 60006);
+                                 APort: Word; out ErrorText: string): Boolean;
 
 
 implementation
@@ -79,9 +79,7 @@ uses
   System.Classes,
   System.Win.ComObj,
   {Xml}
-  Xml.XMLDoc,
-  Xml.XMLIntf,
-  Xml.Win.msxmldom;
+  Winapi.msxml;
 
 type
 
@@ -110,8 +108,8 @@ function WinHttpSetTimeouts(Session: HINTERNET; ResolveTimeout,
 function WinHttpCloseHandle(Handle: HINTERNET): BOOL; stdcall; external 'winhttp.dll';
 
 
-function FindNode(const ANode: IXMLNode;
-                    const AName: string): IXMLNode;
+function FindNode(const ANode: IXMLDOMNode;
+                    const AName: string): IXMLDOMNode;
 var
   i: Integer;
 
@@ -122,14 +120,14 @@ begin
   if (ANode = nil) then
     Exit;
 
-  if SameText(ANode.LocalName,
+  if SameText(ANode.baseName,
                 AName) then
     Exit(ANode);
 
-  for i := 0 to ANode.ChildNodes.Count - 1 do
+  for i := 0 to ANode.childNodes.length - 1 do
     begin
 
-      Result := FindNode(ANode.ChildNodes[i],
+      Result := FindNode(ANode.childNodes.item[i],
                            AName);
       if (Result <> nil) then
         Exit;
@@ -137,10 +135,10 @@ begin
 end;
 
 
-function NodeText(const ANode: IXMLNode;
+function NodeText(const ANode: IXMLDOMNode;
                     const AName: string): string;
 var
-  Node: IXMLNode;
+  Node: IXMLDOMNode;
 
 begin
 
@@ -153,7 +151,7 @@ begin
 end;
 
 
-function FindTransportService(const ANode: IXMLNode): IXMLNode;
+function FindTransportService(const ANode: IXMLDOMNode): IXMLDOMNode;
 var
   i: Integer;
 
@@ -164,19 +162,36 @@ begin
   if (ANode = nil) then
     Exit;
 
-  if SameText(ANode.LocalName,
+  if SameText(ANode.baseName,
                 'service') and
      (Pos('urn:schemas-upnp-org:service:AVTransport:',
             NodeText(ANode, 'serviceType')) = 1) then
     Exit(ANode);
 
-  for i := 0 to ANode.ChildNodes.Count - 1 do
+  for i := 0 to ANode.childNodes.length - 1 do
     begin
 
-      Result := FindTransportService(ANode.ChildNodes[i]);
+      Result := FindTransportService(ANode.childNodes.item[i]);
       if (Result <> nil) then
         Exit;
     end;
+end;
+
+
+function TryLoadXml(const Text: string; out Doc: IXMLDOMDocument; out ErrorText: string): Boolean;
+var Code: HRESULT;
+begin
+  Result := False;
+  Doc := nil;
+  Code := CoCreateInstance(CLASS_DOMDocument60, nil, CLSCTX_INPROC_SERVER, IXMLDOMDocument, Doc);
+  if Failed(Code) then
+    begin ErrorText := Format('Cannot initialize receiver XML parser (0x%.8x)', [Cardinal(Code)]); Exit; end;
+  Doc.async := False;
+  Doc.resolveExternals := False;
+  Doc.validateOnParse := False;
+  if not Doc.loadXML(Text) then
+    begin ErrorText := 'Receiver returned invalid UPnP XML'; Doc := nil; Exit; end;
+  Result := True;
 end;
 
 
@@ -185,7 +200,7 @@ function HttpExchange(const AHost: string;
                         const APath,
                               ABody,
                               ASoapAction: string;
-                        out AStatus: DWORD): string;
+                        out AStatus: DWORD; out ErrorText: string): string;
 var
   Session: HINTERNET;
   Connection: HINTERNET;
@@ -200,6 +215,9 @@ var
 
 begin
 
+  Result := '';
+  AStatus := 0;
+  ErrorText := '';
   Session := nil;
   Connection := nil;
   Request := nil;
@@ -213,17 +231,17 @@ begin
                              nil,
                              0);
     if (Session = nil) then
-      RaiseLastOSError;
+      begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
     if not WinHttpSetTimeouts(Session, 2500, 2500, 3000, 3000) then
-      RaiseLastOSError;
+      begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
     Connection := WinHttpConnect(Session,
                                     PWideChar(AHost),
                                     APort,
                                     0);
     if (Connection = nil) then
-      RaiseLastOSError;
+      begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
     Verb := 'GET';
     Headers := '';
@@ -245,7 +263,7 @@ begin
                                     nil,
                                     0);
     if (Request = nil) then
-      RaiseLastOSError;
+      begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
     if not WinHttpSendRequest(Request,
                                 PWideChar(Headers),
@@ -254,11 +272,11 @@ begin
                                 Length(Body),
                                 Length(Body),
                                 0) then
-      RaiseLastOSError;
+      begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
     if not WinHttpReceiveResponse(Request,
                                      nil) then
-      RaiseLastOSError;
+      begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
     Size := SizeOf(AStatus);
     if not WinHttpQueryHeaders(Request,
@@ -267,7 +285,7 @@ begin
                                   @AStatus,
                                   Size,
                                   nil) then
-      RaiseLastOSError;
+      begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
     repeat
 
@@ -275,10 +293,10 @@ begin
                                 @Buffer[0],
                                 SizeOf(Buffer),
                                 BytesRead) then
-        RaiseLastOSError;
+        begin ErrorText := Format('Receiver UPnP request failed (Windows error %d)', [GetLastError]); Exit; end;
 
       if (Data.Size + BytesRead > 1024 * 1024) then
-        raise Exception.Create('Receiver UPnP response is too large.');
+        begin ErrorText := 'Receiver UPnP response is too large.'; Exit; end;
 
       if (BytesRead > 0) then
         Data.WriteBuffer(Buffer,
@@ -306,24 +324,25 @@ begin
 end;
 
 
-procedure ExecuteReceiverSeek(const AHost: string;
+function ExecuteReceiverSeek(const AHost: string;
                                  const APositionMs: Int64;
-                                 APort: Word);
+                                 APort: Word; out ErrorText: string): Boolean;
 var
-  Doc: IXMLDocument;
-  Service: IXMLNode;
+  Doc: IXMLDOMDocument;
+  Service: IXMLDOMNode;
   Body: string;
   ControlPath: string;
   ServiceType: string;
   Target: string;
-  ErrorText: string;
   Seconds: Int64;
   Status: DWORD;
 
 begin
 
+  Result := False;
+  ErrorText := '';
   if (APositionMs < 0) then
-    raise Exception.Create('Seek position must not be negative.');
+    begin ErrorText := 'Seek position must not be negative.'; Exit; end;
 
   try
 
@@ -332,14 +351,15 @@ begin
                             '/upnp/desc/aios_device/aios_device.xml',
                             '',
                             '',
-                            Status);
+                            Status, ErrorText);
+    if ErrorText <> '' then Exit;
     if (Status <> 200) then
-      raise Exception.CreateFmt('UPnP discovery failed (HTTP %d).', [Status]);
+      begin ErrorText := Format('UPnP discovery failed (HTTP %d).', [Status]); Exit; end;
 
-    Doc := LoadXMLData(Body);
+    if not TryLoadXml(Body, Doc, ErrorText) then Exit;
     Service := FindTransportService(Doc.DocumentElement);
     if (Service = nil) then
-      raise Exception.Create('Receiver has no UPnP AVTransport service.');
+      begin ErrorText := 'Receiver has no UPnP AVTransport service.'; Exit; end;
 
     ControlPath := NodeText(Service,
                               'controlURL');
@@ -347,7 +367,7 @@ begin
                               'serviceType');
     if (ControlPath = '') or (ControlPath[1] <> '/') or
        (Copy(ControlPath, 1, 2) = '//') then
-      raise Exception.Create('Receiver returned an unsupported UPnP control URL.');
+      begin ErrorText := 'Receiver returned an unsupported UPnP control URL.'; Exit; end;
 
     Seconds := APositionMs div 1000;
     Target := Format('%.2d:%.2d:%.2d',
@@ -363,12 +383,13 @@ begin
                             ControlPath,
                             Body,
                             ServiceType + '#Seek',
-                            Status);
+                            Status, ErrorText);
+    if ErrorText <> '' then Exit;
     Service := nil;
     Doc := nil;
 
     if (Body <> '') then
-      Doc := LoadXMLData(Body);
+      if not TryLoadXml(Body, Doc, ErrorText) then Exit;
 
     if (Status <> 200) or (Doc = nil) or
        (FindNode(Doc.DocumentElement, 'SeekResponse') = nil) then
@@ -379,9 +400,10 @@ begin
           ErrorText := NodeText(Doc.DocumentElement, 'errorCode') + ' ' +
                        NodeText(Doc.DocumentElement, 'errorDescription');
 
-        raise Exception.CreateFmt('Receiver seek failed (HTTP %d): %s',
-                                     [Status, Trim(ErrorText)]);
+        ErrorText := Format('Receiver seek failed (HTTP %d): %s', [Status, Trim(ErrorText)]);
+        Exit;
       end;
+    Result := True;
   finally
 
     Service := nil;
@@ -390,9 +412,9 @@ begin
 end;
 
 
-procedure SeekReceiverPosition(const AHost: string;
+function TrySeekReceiverPosition(const AHost: string;
                                  const APositionMs: Int64;
-                                 APort: Word);
+                                 APort: Word; out ErrorText: string): Boolean;
 var
   InitResult: HRESULT;
 
@@ -400,14 +422,15 @@ begin
 
   InitResult := CoInitializeEx(nil,
                                  COINIT_APARTMENTTHREADED);
-  OleCheck(InitResult);
+  Result := False;
+  ErrorText := '';
+  if Failed(InitResult) then
+    begin ErrorText := Format('Cannot initialize seek COM (0x%.8x)', [Cardinal(InitResult)]); Exit; end;
 
   try
 
     // Release all XML interface temporaries before leaving the COM apartment.
-    ExecuteReceiverSeek(AHost,
-                           APositionMs,
-                           APort);
+    Result := ExecuteReceiverSeek(AHost, APositionMs, APort, ErrorText);
   finally
 
     CoUninitialize;

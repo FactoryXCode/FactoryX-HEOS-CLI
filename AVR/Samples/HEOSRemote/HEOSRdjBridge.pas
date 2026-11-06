@@ -63,6 +63,7 @@ unit HEOSRdjBridge;
 interface
 
 uses
+
   {WinApi}
   WinApi.Windows,
   {System}
@@ -88,7 +89,8 @@ type
   public
 
     function LoadSingleTrack(const FileName: string;
-                               StartPlayback: Boolean = False): HRESULT;
+                             StartPlayback: Boolean = False): HRESULT;
+
     function PlayPlaylistByID(PlaylistID: Integer): HRESULT;
     function LoadPlaylistByID(PlaylistID: Integer): HRESULT;
 
@@ -103,7 +105,8 @@ type
   public
 
     constructor Create(const DatabaseFile: string;
-                         Route: THEOSRdjRouteEvent);
+                       Route: THEOSRdjRouteEvent);
+
     destructor Destroy(); override;
 
     function GetChannelDeckCount(): Integer;
@@ -122,7 +125,7 @@ uses
   RDJ.PlaylistManager;
 
 constructor THEOSRdjBridge.Create(const DatabaseFile: string;
-                                    Route: THEOSRdjRouteEvent);
+                                  Route: THEOSRdjRouteEvent);
 begin
 
   inherited Create;
@@ -153,56 +156,82 @@ begin
 end;
 
 function THEOSDeckAdapter.LoadSingleTrack(const FileName: string;
-                                            StartPlayback: Boolean): HRESULT;
+                                          StartPlayback: Boolean): HRESULT;
 var
   Playlist: TRDJPlaylist;
   Entry: TRDJPlaylistEntry;
+
 begin
 
   Result := HRESULT($80004005);
+
   if not FileExists(FileName) then
     Exit(HRESULT($80070002));
+
   if not Assigned(FOnRoute) then
     Exit;
+
   Playlist := TRDJPlaylist.Create;
+
   try
     Entry := RDJEmptyPlaylistEntry();
     Entry.Track.FullPath := ExpandFileName(FileName);
     Entry.Track.FileName := ExtractFileName(FileName);
     Entry.Track.Title := ChangeFileExt(Entry.Track.FileName, '');
     Playlist.Add(Entry);
-    FOnRoute(Self, Playlist, 0, StartPlayback);
+
+    FOnRoute(Self,
+             Playlist,
+             0,
+             StartPlayback);
+
     Result := S_OK;
+
   finally
     Playlist.Free;
   end;
 end;
 
+
 function THEOSDeckAdapter.RoutePlaylist(const PlaylistID: Integer;
-                                          StartPlayback: Boolean): HRESULT;
+                                        StartPlayback: Boolean): HRESULT;
 var
   Db: TRDJPlaylistDb;
   LibraryRef: TRDJTrackLibrary;
   Manager: TRDJPlaylistManager;
   Playlist: TRDJPlaylist;
+
 begin
 
   Result := HRESULT($80004005);
+
   if not Assigned(FOnRoute) then
     Exit;
+
   Db := TRDJPlaylistDb.Create;
   LibraryRef := nil;
   Manager := nil;
   Playlist := nil;
+
   try
     Db.Open(FDatabaseFile);
     LibraryRef := TRDJTrackLibrary.Create(Db);
-    Manager := TRDJPlaylistManager.Create(Db, LibraryRef);
+
+    Manager := TRDJPlaylistManager.Create(Db,
+                                          LibraryRef);
+
     Playlist := Manager.LoadPlaylist(PlaylistID);
+
     if (Playlist = nil) or (Playlist.Count = 0) then
       Exit;
-    FOnRoute(Self, Playlist, 0, StartPlayback);
+
+    FOnRoute(Self,
+             Playlist,
+             0,
+             StartPlayback);
+
     Result := S_OK;
+
   finally
     Playlist.Free;
     Manager.Free;
@@ -211,16 +240,20 @@ begin
   end;
 end;
 
+
 function THEOSDeckAdapter.PlayPlaylistByID(PlaylistID: Integer): HRESULT;
 begin
 
-  Result := RoutePlaylist(PlaylistID, True);
+  Result := RoutePlaylist(PlaylistID,
+                          True);
 end;
+
 
 function THEOSDeckAdapter.LoadPlaylistByID(PlaylistID: Integer): HRESULT;
 begin
 
-  Result := RoutePlaylist(PlaylistID, False);
+  Result := RoutePlaylist(PlaylistID,
+                          False);
 end;
 
 end.

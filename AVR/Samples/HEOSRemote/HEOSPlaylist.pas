@@ -63,6 +63,7 @@ unit HEOSPlaylist;
 interface
 
 uses
+
   {System}
   System.Classes,
   System.SysUtils,
@@ -100,6 +101,7 @@ type
     property ErrorText: string read FError;
   end;
 
+
 implementation
 
 uses
@@ -109,14 +111,20 @@ uses
   System.IOUtils,
   System.StrUtils;
 
+
 function IsDenonAudioFile(const FileName: string): Boolean;
 var
   Ext: string;
+
 begin
 
   Ext := LowerCase(ExtractFileExt(FileName));
-  Result := (Ext = '.mp3') or (Ext = '.flac') or (Ext = '.wav') or
-            (Ext = '.aac') or (Ext = '.m4a') or (Ext = '.wma');
+  Result := (Ext = '.mp3') or
+            (Ext = '.flac') or
+            (Ext = '.wav') or
+            (Ext = '.aac') or
+            (Ext = '.m4a') or
+            (Ext = '.wma');
 end;
 
 function PlaylistEntry(const FileName: string): TRDJPlaylistEntry;
@@ -130,6 +138,7 @@ begin
   Result.Track.IsMissing := not FileExists(Result.Track.FullPath);
 end;
 
+
 procedure LoadPlaylist(const FileName: string;
                         Playlist: TRDJPlaylist);
 var
@@ -142,92 +151,128 @@ var
   Entry: TRDJPlaylistEntry;
   P: Integer;
   I: Integer;
+
 begin
 
-  Lines := TStringList.Create;
-  Items := TRDJPlaylist.Create;
-  try
-    Lines.LoadFromFile(FileName, TEncoding.UTF8);
-    Title := '';
-    for RawLine in Lines do
-    begin
-      Line := Trim(RawLine);
-      if Line = '' then
-        Continue;
-      if StartsText('#EXTINF:', Line) then
-      begin
-        P := Pos(',', Line);
-        Title := Copy(Line, P + 1, MaxInt);
-        Continue;
-      end;
-      if Line[1] = '#' then
-        Continue;
-      if Pos('://', Line) > 0 then
-        raise Exception.Create('This playlist contains an Internet URL. Choose a playlist of local music files.');
-      if not IsDenonAudioFile(Line) then
-        raise Exception.Create('Unsupported playlist item: ' + Line);
+  Lines := TStringList.Create();
+  Items := TRDJPlaylist.Create();
 
-      Path := Line;
-      if TPath.IsRelativePath(Path) then
-        Path := IncludeTrailingPathDelimiter(ExtractFilePath(ExpandFileName(FileName))) + Path;
-      Entry := PlaylistEntry(Path);
-      if Title <> '' then
-        Entry.Track.Title := Title;
-      Title := '';
-      Items.Add(Entry);
-    end;
+  try
+    Lines.LoadFromFile(FileName,
+                       TEncoding.UTF8);
+    Title := '';
+
+    for RawLine in Lines do
+      begin
+        Line := Trim(RawLine);
+
+        if (Line = '') then
+          Continue;
+
+        if StartsText('#EXTINF:',
+                      Line) then
+          begin
+            P := Pos(',',
+                     Line);
+            Title := Copy(Line,
+                          P + 1,
+                          MaxInt);
+            Continue;
+          end;
+
+        if Line[1] = '#' then
+          Continue;
+
+         if Pos('://',
+                Line) > 0 then
+          raise Exception.Create('This playlist contains an Internet URL. Choose a playlist of local music files.');
+
+        if not IsDenonAudioFile(Line) then
+          raise Exception.Create('Unsupported playlist item: ' + Line);
+
+        Path := Line;
+
+        if TPath.IsRelativePath(Path) then
+          Path := IncludeTrailingPathDelimiter(ExtractFilePath(ExpandFileName(FileName))) + Path;
+
+        Entry := PlaylistEntry(Path);
+
+        if (Title <> '') then
+          Entry.Track.Title := Title;
+
+        Title := '';
+        Items.Add(Entry);
+      end;
+
     Playlist.Clear();
+
     for I := 0 to Items.Count - 1 do
       Playlist.Add(Items[I]);
+
     Playlist.RebuildSortOrder();
     Playlist.Modified := False;
+
   finally
     Items.Free;
     Lines.Free;
   end;
 end;
 
+
 procedure SavePlaylist(const FileName: string;
-                        Playlist: TRDJPlaylist);
+                       Playlist: TRDJPlaylist);
 var
   Lines: TStringList;
   I: Integer;
+
 begin
 
   Lines := TStringList.Create;
+
   try
     Lines.Add('#EXTM3U');
+
     for I := 0 to Playlist.Count - 1 do
     begin
       Lines.Add('#EXTINF:-1,' + Playlist[I].Track.Title);
       Lines.Add(Playlist[I].Track.FullPath);
     end;
-    Lines.SaveToFile(FileName, TEncoding.UTF8);
+
+    Lines.SaveToFile(FileName,
+                     TEncoding.UTF8);
     Playlist.Modified := False;
+
   finally
     Lines.Free;
   end;
 end;
 
+
 constructor TAudioFolderScan.Create(const Root: string);
 begin
 
   inherited Create(True);
+
   FreeOnTerminate := False;
   FRoot := Root;
   FFiles := TStringList.Create;
 end;
 
+
 destructor TAudioFolderScan.Destroy();
 begin
 
   Terminate;
+
   if Suspended then
     Start;
+
   WaitFor;
   FFiles.Free;
+
   inherited;
 end;
+
 
 function TAudioFolderScan.FileCount(): Integer;
 begin
@@ -235,15 +280,18 @@ begin
   Result := InterlockedCompareExchange(FCount, 0, 0);
 end;
 
+
 procedure TAudioFolderScan.Execute();
 var
   Folders: TStringList;
   Folder: string;
   Path: string;
   Search: TSearchRec;
+
 begin
 
   Folders := TStringList.Create;
+
   try
     try
       Folders.Add(IncludeTrailingPathDelimiter(ExpandFileName(FRoot)));
@@ -252,6 +300,7 @@ begin
         begin
           Folder := Folders[Folders.Count - 1];
           Folders.Delete(Folders.Count - 1);
+
           if FindFirst(Folder + '*',
                        faAnyFile,
                        Search) <> 0 then
@@ -259,6 +308,7 @@ begin
 
           try
             repeat
+
               if Terminated then
                 Break;
 
@@ -266,13 +316,14 @@ begin
                 Continue;
 
               Path := Folder + Search.Name;
+
               if ((Search.Attr and faDirectory) <> 0) then
                 begin
 
                   // Do not recurse into junctions or directory symbolic links.
                   {$WARN SYMBOL_PLATFORM OFF}
                   if ((Search.FindData.dwFileAttributes and FILE_ATTRIBUTE_REPARSE_POINT) = 0) then
-                  {$WARN SYMBOL_PLATFORM ON}
+                    {$WARN SYMBOL_PLATFORM ON}
                     Folders.Add(IncludeTrailingPathDelimiter(Path));
                 end
               else

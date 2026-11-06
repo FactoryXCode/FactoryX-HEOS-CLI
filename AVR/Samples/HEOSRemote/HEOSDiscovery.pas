@@ -99,6 +99,7 @@ type
                                 const Address: string;
                                 out Device: THEOSDevice): Boolean;
 
+
 implementation
 
 uses
@@ -112,62 +113,101 @@ uses
   {Application}
   HEOSSockets;
 
+
 function SsdpLocation(const Response: string): string;
 var
   Line: string;
+
 begin
 
   Result := '';
-  if not StartsText('HTTP/1.1 200', Response) then
+
+  if not StartsText('HTTP/1.1 200',
+                    Response) then
     Exit;
 
   for Line in Response.Split([#10]) do
-    if StartsText('LOCATION:', Trim(Line)) then
-      Exit(Trim(Copy(Trim(Line), 10, MaxInt)));
+    if StartsText('LOCATION:',
+                  Trim(Line)) then
+      Exit(Trim(Copy(Trim(Line),
+                     10,
+                     MaxInt)));
 end;
 
-function XmlText(const Xml, Tag: string): string;
+
+function XmlText(const Xml: string;
+                 const Tag: string): string;
 var
   StartAt: Integer;
   EndAt: Integer;
   Lower: string;
+
 begin
 
   Result := '';
   Lower := LowerCase(Xml);
   StartAt := Pos('<' + LowerCase(Tag) + '>', Lower);
-  if StartAt = 0 then
+
+  if (StartAt = 0) then
     Exit;
 
-  Inc(StartAt, Length(Tag) + 2);
-  EndAt := PosEx('</' + LowerCase(Tag) + '>', Lower, StartAt);
+  Inc(StartAt,
+      Length(Tag) + 2);
+
+  EndAt := PosEx('</' + LowerCase(Tag) + '>',
+                 Lower,
+                 StartAt);
+
   if EndAt <= StartAt then
     Exit;
 
-  Result := Trim(Copy(Xml, StartAt, EndAt - StartAt));
-  Result := StringReplace(Result, '&amp;', '&', [rfReplaceAll]);
-  Result := StringReplace(Result, '&lt;', '<', [rfReplaceAll]);
-  Result := StringReplace(Result, '&gt;', '>', [rfReplaceAll]);
+  Result := Trim(Copy(Xml,
+                      StartAt,
+                      EndAt - StartAt));
+
+  Result := StringReplace(Result,
+                          '&amp;',
+                          '&',
+                          [rfReplaceAll]);
+
+  Result := StringReplace(Result,
+                          '&lt;',
+                          '<',
+                          [rfReplaceAll]);
+
+  Result := StringReplace(Result,
+                          '&gt;',
+                          '>',
+                          [rfReplaceAll]);
 end;
 
+
 function ParseHEOSDescription(const Xml: string;
-                               const Address: string;
-                               out Device: THEOSDevice): Boolean;
+                              const Address: string;
+                              out Device: THEOSDevice): Boolean;
 var
   Description: string;
+
 begin
 
   Device := Default(THEOSDevice);
   Description := LowerCase(Xml);
-  Device.Model := XmlText(Xml, 'modelName');
-  Device.DeviceId := XmlText(Xml, 'UDN');
-  Result := IPv4Valid(Address) and
-            (Pos('urn:schemas-denon-com:device:act-denon:1', Description) > 0);
+  Device.Model := XmlText(Xml,
+                          'modelName');
+
+  Device.DeviceId := XmlText(Xml,
+                             'UDN');
+
+  // ACT-Denon is the shared HEOS device type for Denon and Marantz products.
+  // The Denon namespace identifies the protocol, not the receiver's brand.
+  Result := IPv4Valid(Address) and (Pos('urn:schemas-denon-com:device:act-denon:1',
+                                        Description) > 0);
   if not Result then
     Exit;
 
   Device.Address := Address;
-  Device.Name := XmlText(Xml, 'friendlyName');
+  Device.Name := XmlText(Xml,
+                         'friendlyName');
   if Device.Name = '' then
     Device.Name := Device.Model;
 end;
@@ -192,8 +232,10 @@ begin
                           nil,
                           nil,
                           0);
+
   if (Session = nil) then
     Exit;
+
   try
     Clock := TStopwatch.StartNew;
     Timeout := 1200;
@@ -255,6 +297,7 @@ begin
              Count);
 
       until False;
+
       Result := TEncoding.UTF8.GetString(Data);
 
     finally
@@ -266,15 +309,19 @@ begin
   end;
 end;
 
+
 constructor THEOSDiscovery.Create();
 begin
 
   inherited Create(True);
+
   FreeOnTerminate := False;
 end;
 
+
 procedure THEOSDiscovery.Execute();
 const
+  // Marantz HEOS products use this same SSDP target (HEOS CLI spec, section 2).
   Targets: array[0..0] of string = ('urn:schemas-denon-com:device:ACT-Denon:1');
 
 var
@@ -317,14 +364,19 @@ begin
                SizeOf(Host),
                0);
 
-      SocketCheck(gethostname(Host,
-                  SizeOf(Host)),
-                  'Get local host');
+      if gethostname(Host, SizeOf(Host)) = SOCKET_ERROR then
+        begin
+          FError := 'Could not read the local network host';
+          Exit;
+        end;
 
       Entry := gethostbyname(Host);
 
-      if Entry = nil then
-        raise Exception.Create('Could not enumerate network interfaces');
+      if (Entry = nil) then
+        begin
+          FError := 'Could not enumerate network interfaces';
+          Exit;
+        end;
 
       FillChar(Group,
                SizeOf(Group),
@@ -335,7 +387,7 @@ begin
       Group.sin_addr.S_addr := inet_addr('239.255.255.250');
 
       I := 0;
-      while Entry.h_addr_list[I] <> nil do
+      while (Entry.h_addr_list[I] <> nil) do
         begin
           Local := PInAddr(Entry.h_addr_list[I])^;
           Inc(I);
@@ -370,6 +422,7 @@ begin
                    IP_MULTICAST_IF,
                    PAnsiChar(@Local),
                    SizeOf(Local));
+
         Sockets.Add(S);
 
         for Target in Targets do
@@ -388,7 +441,7 @@ begin
       end;
 
       if (Sockets.Count = 0) then
-        raise Exception.Create('No active IPv4 network interface was found');
+        begin FError := 'No active IPv4 network interface was found'; Exit; end;
 
       Clock := TStopwatch.StartNew();
 
@@ -464,22 +517,34 @@ begin
           if ParseHEOSDescription(Xml,
                                    Address,
                                    Device) and
-             ProbeReceiver(Address, 1255, 800, ErrorText) then
+             ProbeReceiver(Address,
+                           1255,
+                           800,
+                           ErrorText) then
         begin
           // HEOS speakers also advertise the CLI; AVR control is separate.
-          Device.AvrAvailable := ProbeReceiver(Address, 23, 800, ErrorText);
+          Device.AvrAvailable := ProbeReceiver(Address,
+                                               23,
+                                               800,
+                                               ErrorText);
+
           Known.Add(Address);
-          SetLength(FDevices, Length(FDevices) + 1);
+          SetLength(FDevices,
+                    Length(FDevices) + 1);
+
           FDevices[High(FDevices)] := Device;
         end;
         end;
+
     except
       on E: Exception do
         FError := E.Message;
     end;
+
   finally
     for S in Sockets do
       closesocket(S);
+
     Known.Free;
     Locations.Free;
     Addresses.Free;

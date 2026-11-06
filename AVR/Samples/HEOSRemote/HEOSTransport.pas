@@ -72,7 +72,7 @@ uses
 
 type
 
-  TDenonRequest = class(TThread)
+  THeosRequest = class(TThread)
   private
     FHost: string;
     FPort: Integer;
@@ -104,6 +104,8 @@ type
   end;
 
 
+  TDenonRequest = THeosRequest;
+
 implementation
 
 uses
@@ -113,13 +115,13 @@ uses
   {Application}
   HEOSSockets;
 
-constructor TDenonRequest.Create(const Host: string;
-                                 const Commands: array of string;
-                                 Port: Integer;
-                                 StopOnVolumeReply: Boolean;
-                                 StopOnChannelReply: Boolean;
-                                 StopOnZoneReply: Boolean;
-                                 StopOnToneReply: Boolean);
+constructor THeosRequest.Create(const Host: string;
+                                const Commands: array of string;
+                                Port: Integer;
+                                StopOnVolumeReply: Boolean;
+                                StopOnChannelReply: Boolean;
+                                StopOnZoneReply: Boolean;
+                                StopOnToneReply: Boolean);
 var
   I: Integer;
 
@@ -142,7 +144,7 @@ begin
 end;
 
 
-destructor TDenonRequest.Destroy();
+destructor THeosRequest.Destroy();
 begin
 
   FCommands.Free;
@@ -152,7 +154,7 @@ begin
 end;
 
 
-procedure TDenonRequest.Execute;
+procedure THeosRequest.Execute;
 var
   Client: THEOSConnection;
   Command: string;
@@ -214,7 +216,7 @@ begin
 
   try
     try
-      Client := THEOSConnection.Create(FHost, FPort);
+      if not THEOSConnection.TryConnect(FHost, FPort, 2500, Client, FError) then Exit;
       for Command in FCommands do
         if (Copy(Command, 1, 2) = 'MV') and
            (Length(Command) in [4, 5]) and
@@ -232,7 +234,7 @@ begin
             Exit;
 
           // Denon's AVR protocol terminates commands with CR, not CR/LF.
-          Client.Send(AnsiString(Command) + #13);
+          if not Client.TrySend(AnsiString(Command) + #13, FError) then Exit;
           // Space commands to avoid overrunning the receiver's control interface.
           if (Command = 'PWON') or (Command = 'ZMON') or (Command = 'Z2ON') then
             Sleep(1000)
@@ -244,8 +246,7 @@ begin
 
       while (not Terminated) and (Timer.ElapsedMilliseconds < 2500) do
         begin
-          Line := Client.ReadLine(#13,
-                                  250);
+          if not Client.TryReadLine(#13, 250, Line, FError) then Exit;
 
           if (Trim(Line) <> '') then
             FLines.Add(Trim(Line));

@@ -57,12 +57,12 @@ object HEOSRadioForm: THEOSRadioForm
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 285
+      Width = 296
       Height = 27
       Align = alLeft
       Alignment = taCenter
       AutoSize = False
-      Caption = 'HEOS Remote 1.1.11 - Internet Radio'
+      Caption = 'HEOS Remote 1.1.16 - Internet Radio'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clAqua
       Font.Height = -16
@@ -70,9 +70,6 @@ object HEOSRadioForm: THEOSRadioForm
       Font.Style = []
       ParentFont = False
       OnMouseDown = Label1MouseDown
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitHeight = 33
     end
     object btnClose: TDnButton
       Left = 768
@@ -199,7 +196,7 @@ object HEOSRadioForm: THEOSRadioForm
     end
     object lblStationName: TLabel
       Left = 6
-      Top = 90
+      Top = 86
       Width = 60
       Height = 17
       Alignment = taRightJustify
@@ -208,7 +205,7 @@ object HEOSRadioForm: THEOSRadioForm
     end
     object lblStationUrl: TLabel
       Left = 6
-      Top = 126
+      Top = 124
       Width = 60
       Height = 17
       Alignment = taRightJustify
@@ -245,7 +242,7 @@ object HEOSRadioForm: THEOSRadioForm
     end
     object lblLogo: TLabel
       Left = 6
-      Top = 164
+      Top = 162
       Width = 60
       Height = 17
       Alignment = taRightJustify
@@ -254,14 +251,14 @@ object HEOSRadioForm: THEOSRadioForm
     end
     object edStationName: TEdit
       Left = 72
-      Top = 87
+      Top = 85
       Width = 475
       Height = 25
       Hint = 'Station name'
       BevelInner = bvNone
       BevelKind = bkSoft
       BorderStyle = bsNone
-      Color = 4865081
+      Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -283,7 +280,7 @@ object HEOSRadioForm: THEOSRadioForm
       BevelInner = bvNone
       BevelKind = bkSoft
       BorderStyle = bsNone
-      Color = 4865081
+      Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -358,8 +355,9 @@ object HEOSRadioForm: THEOSRadioForm
       Width = 475
       Height = 25
       BevelInner = bvNone
-      Style = csDropDownList
-      Color = 4865081
+      BevelKind = bkSoft
+      BevelOuter = bvNone
+      Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -405,7 +403,7 @@ object HEOSRadioForm: THEOSRadioForm
       BevelInner = bvNone
       BevelKind = bkSoft
       BorderStyle = bsNone
-      Color = 4865081
+      Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -536,7 +534,7 @@ object HEOSRadioForm: THEOSRadioForm
       Top = 47
       Width = 543
       Height = 294
-      Color = 4865081
+      Color = 9216
       Columns = <
         item
           Caption = 'Station / category'
@@ -676,8 +674,9 @@ object HEOSRadioForm: THEOSRadioForm
       Width = 166
       Height = 25
       BevelInner = bvNone
-      Style = csDropDownList
-      Color = 4865081
+      BevelKind = bkSoft
+      BevelOuter = bvNone
+      Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -694,7 +693,7 @@ object HEOSRadioForm: THEOSRadioForm
       BevelInner = bvNone
       BevelKind = bkSoft
       BorderStyle = bsNone
-      Color = 4865081
+      Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13

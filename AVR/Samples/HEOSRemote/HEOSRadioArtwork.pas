@@ -111,6 +111,7 @@ constructor THeosRadioArtwork.Create(const Url: string);
 begin
 
   inherited Create(True);
+
   FreeOnTerminate := False;
   FUrl := Url;
 end;
@@ -119,9 +120,10 @@ end;
 destructor THeosRadioArtwork.Destroy();
 begin
 
-  Terminate;
-  WaitFor;
-  FGraphic.Free;
+  Terminate();
+  WaitFor();
+  FGraphic.Free();
+
   inherited;
 end;
 
@@ -145,26 +147,35 @@ begin
   Session := nil;
   Request := nil;
   Stream := nil;
+
   try
     try
-      if not StartsText('http://', FUrl) and not StartsText('https://', FUrl) then
+      if not StartsText('http://',
+                        FUrl) and not StartsText('https://',
+                                                 FUrl) then
         begin
           if not FileExists(FUrl) then
             begin
               FErrorText := 'Station logo file is unavailable.';
               Exit;
             end;
-          LocalFile := TFileStream.Create(FUrl, fmOpenRead or fmShareDenyWrite);
+
+          LocalFile := TFileStream.Create(FUrl,
+                                          fmOpenRead or fmShareDenyWrite);
+
           try
             if (LocalFile.Size > 4 * 1024 * 1024) then
               begin
                 FErrorText := 'Station logo is too large.';
                 Exit;
               end;
+
             if Terminated then
               Exit;
-            Stream := TMemoryStream.Create;
-            Stream.CopyFrom(LocalFile, 0);
+            Stream := TMemoryStream.Create();
+            Stream.CopyFrom(LocalFile,
+                            0);
+
           finally
             LocalFile.Free;
           end;
@@ -172,68 +183,117 @@ begin
       else
         begin
           Session := InternetOpen('FactoryX HEOS Remote artwork',
-                                   INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+                                   INTERNET_OPEN_TYPE_PRECONFIG,
+                                   nil,
+                                   nil,
+                                   0);
+
           if not Assigned(Session) then
             begin
               FErrorText := 'Cannot start the station logo request.';
               Exit;
             end;
+
           Timeout := 1500;
-          InternetSetOption(Session, INTERNET_OPTION_CONNECT_TIMEOUT, @Timeout, SizeOf(Timeout));
-          InternetSetOption(Session, INTERNET_OPTION_SEND_TIMEOUT, @Timeout, SizeOf(Timeout));
-          InternetSetOption(Session, INTERNET_OPTION_RECEIVE_TIMEOUT, @Timeout, SizeOf(Timeout));
-          Clock := TStopwatch.StartNew;
+          InternetSetOption(Session,
+                            INTERNET_OPTION_CONNECT_TIMEOUT,
+                            @Timeout,
+                            SizeOf(Timeout));
+
+          InternetSetOption(Session,
+                            INTERNET_OPTION_SEND_TIMEOUT,
+                            @Timeout,
+                            SizeOf(Timeout));
+
+          InternetSetOption(Session,
+                            INTERNET_OPTION_RECEIVE_TIMEOUT,
+                            @Timeout,
+                            SizeOf(Timeout));
+
+          Clock := TStopwatch.StartNew();
+
           if Terminated then
             Exit;
-          Request := InternetOpenUrl(Session, PChar(FUrl), nil, 0,
-                                      INTERNET_FLAG_RELOAD or INTERNET_FLAG_NO_CACHE_WRITE or
-                                      INTERNET_FLAG_NO_COOKIES or INTERNET_FLAG_NO_UI, 0);
+
+          Request := InternetOpenUrl(Session,
+                                     PChar(FUrl),
+                                     nil,
+                                     0,
+                                     INTERNET_FLAG_RELOAD or INTERNET_FLAG_NO_CACHE_WRITE or INTERNET_FLAG_NO_COOKIES or INTERNET_FLAG_NO_UI,
+                                     0);
+
           if not Assigned(Request) then
             begin
               FErrorText := 'Station logo could not be downloaded.';
               Exit;
             end;
+
           Status := 0;
           Index := 0;
           Size := SizeOf(Status);
-          if not HttpQueryInfo(Request, HTTP_QUERY_STATUS_CODE or HTTP_QUERY_FLAG_NUMBER,
-                                 @Status, Size, Index) or (Status < 200) or (Status >= 300) then
+
+          if not HttpQueryInfo(Request,
+                               HTTP_QUERY_STATUS_CODE or HTTP_QUERY_FLAG_NUMBER,
+                               @Status,
+                               Size,
+                               Index) or (Status < 200) or (Status >= 300) then
             begin
               FErrorText := 'Station logo is unavailable from its server.';
               Exit;
             end;
-          Stream := TMemoryStream.Create;
+
+          Stream := TMemoryStream.Create();
+
           while not Terminated do
             begin
+
               if (Clock.ElapsedMilliseconds > 4000) then
                 begin
                   FErrorText := 'Station logo request timed out.';
                   Exit;
                 end;
-              if not InternetReadFile(Request, @Buffer[0], SizeOf(Buffer), Count) then
+
+              if not InternetReadFile(Request,
+                                      @Buffer[0],
+                                      SizeOf(Buffer),
+                                      Count) then
                 begin
                   FErrorText := 'Station logo download was interrupted.';
                   Exit;
                 end;
+
               if (Count = 0) then
                 Break;
-              if (Stream.Size + Count > 4 * 1024 * 1024) then
+
+              if ((Stream.Size + Count) > (4 * 1024 * 1024)) then
                 begin
                   FErrorText := 'Station logo is too large.';
                   Exit;
                 end;
-              Stream.WriteBuffer(Buffer[0], Count);
+
+              Stream.WriteBuffer(Buffer[0],
+                                 Count);
             end;
         end;
+
       if Terminated then
         Exit;
+
       Stream.Position := 0;
-      FillChar(Buffer, SizeOf(Buffer), 0);
-      Stream.Read(Buffer[0], 8);
+      FillChar(Buffer,
+               SizeOf(Buffer),
+               0);
+
+      Stream.Read(Buffer[0],
+                  8);
       Stream.Position := 0;
-      if (Stream.Size >= 8) and (Buffer[0] = $89) and
-         (Buffer[1] = $50) and (Buffer[2] = $4E) and (Buffer[3] = $47) then
-        FGraphic := TPngImage.Create
+
+      if (Stream.Size >= 8) and
+         (Buffer[0] = $89) and
+         (Buffer[1] = $50) and
+         (Buffer[2] = $4E) and
+         (Buffer[3] = $47) then
+        FGraphic := TPngImage.Create()
       else
         if (Stream.Size >= 3) and (Buffer[0] = $FF) and (Buffer[1] = $D8) then
           FGraphic := TJPEGImage.Create
@@ -244,17 +304,21 @@ begin
           else
             if (Stream.Size >= 2) and (Buffer[0] = Ord('B')) and (Buffer[1] = Ord('M')) then
               FGraphic := Vcl.Graphics.TBitmap.Create;
+
       if not Assigned(FGraphic) then
         begin
           FErrorText := 'Station logo format is not supported (PNG, JPEG, GIF or BMP required).';
           Exit;
         end;
+
       FGraphic.LoadFromStream(Stream);
+
       if (FGraphic.Width > 4096) or (FGraphic.Height > 4096) then
         begin
           FreeAndNil(FGraphic);
           FErrorText := 'Station logo dimensions are too large.';
         end;
+
     except
       on E: Exception do
         begin
@@ -262,10 +326,13 @@ begin
           FErrorText := 'Station logo: ' + E.Message;
         end;
     end;
+
   finally
     Stream.Free;
+
     if Assigned(Request) then
       InternetCloseHandle(Request);
+
     if Assigned(Session) then
       InternetCloseHandle(Session);
   end;

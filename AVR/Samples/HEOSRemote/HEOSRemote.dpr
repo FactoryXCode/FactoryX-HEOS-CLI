@@ -36,8 +36,10 @@ begin
   Application.MainFormOnTaskbar := True;
   Application.Title := 'HEOS Remote 1.1.13';
   Application.CreateForm(THEOSForm, HEOSForm);
+
   try
     Application.Run;
+
   finally
     HEOSForm.Free;
     RDJShutdownPlaylistDbFireDAC();

@@ -8,10 +8,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
   BorderIcons = []
   BorderStyle = bsSizeToolWin
   Caption = 'Playlist Composer'
-  ClientHeight = 721
+  ClientHeight = 731
   ClientWidth = 1264
   Color = 5850948
-  Constraints.MinHeight = 760
+  Constraints.MinHeight = 770
   Constraints.MinWidth = 1280
   DefaultMonitor = dmDesktop
   DoubleBuffered = True
@@ -59,7 +59,7 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
     end
     object Label1: TLabel
       Left = 15
-      Top = 71
+      Top = 74
       Width = 81
       Height = 21
       Hint = 'Search for a name, title etc.'
@@ -76,17 +76,21 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       ShowHint = True
     end
     object edtSearch: TEdit
+      AlignWithMargins = True
       Left = 102
       Top = 18
-      Width = 320
+      Width = 311
       Height = 27
       Hint = 'Search for a name, title etc.'
       Alignment = taCenter
       AutoSize = False
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BorderStyle = bsNone
       Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
-      Font.Height = -13
+      Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
@@ -103,7 +107,6 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       Color = 5850948
       ParentBackground = False
       TabOrder = 1
-      ExplicitLeft = 640
       object lblPlaylist: TLabel
         Left = 4
         Top = 19
@@ -136,11 +139,13 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       end
       object cbPlaylists: TComboBox
         Left = 72
-        Top = 19
+        Top = 18
         Width = 321
-        Height = 22
+        Height = 24
         Hint = 'Select a playlist'
-        Style = csOwnerDrawFixed
+        BevelInner = bvNone
+        BevelKind = bkSoft
+        BevelOuter = bvNone
         Color = 9216
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clAqua
@@ -224,17 +229,20 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       end
     end
     object edFileName: TEdit
-      Left = 101
-      Top = 68
-      Width = 427
+      AlignWithMargins = True
+      Left = 102
+      Top = 71
+      Width = 416
       Height = 26
       Hint = 'Search for an audiofile'
-      Alignment = taCenter
       AutoSize = False
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BorderStyle = bsNone
       Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
-      Font.Height = -13
+      Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
@@ -245,7 +253,7 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       OnMouseDown = edFileNameMouseDown
     end
     object btnSearch: TDnButton
-      Left = 428
+      Left = 422
       Top = 15
       Width = 100
       Height = 33
@@ -279,7 +287,7 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       OnClick = btnSearchClick
     end
     object btnClearSearch: TDnButton
-      Left = 534
+      Left = 528
       Top = 15
       Width = 100
       Height = 33
@@ -313,8 +321,8 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       OnClick = btnClearSearchClick
     end
     object btnOpenFile: TDnButton
-      Left = 534
-      Top = 64
+      Left = 528
+      Top = 67
       Width = 100
       Height = 33
       Hint = 'Search for an audiofile.'
@@ -351,7 +359,7 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
     Left = 0
     Top = 143
     Width = 1264
-    Height = 549
+    Height = 559
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
@@ -359,23 +367,24 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       Left = 636
       Top = 0
       Width = 2
-      Height = 549
+      Height = 559
       Color = 5850948
       MinSize = 5
       ParentColor = False
+      ExplicitHeight = 549
     end
     object pnlLibrary: TPanel
       Left = 0
       Top = 0
       Width = 520
-      Height = 549
+      Height = 559
       Align = alLeft
       TabOrder = 0
       object grdLibrary: TStringGrid
         Left = 1
         Top = 1
         Width = 518
-        Height = 547
+        Height = 557
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -403,24 +412,22 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnMouseDown = grdLibraryMouseDown
         OnSelectCell = grdLibrarySelectCell
         OnSetEditText = grdLibrarySetEditText
-        ExplicitWidth = 519
       end
     end
     object pnlActions: TPanel
       Left = 520
       Top = 0
       Width = 116
-      Height = 549
+      Height = 559
       Align = alLeft
       Color = 5850948
       ParentBackground = False
       TabOrder = 1
-      ExplicitLeft = 522
       object btnTagEditor: TDnButton
-        Left = 9
-        Top = 12
+        Left = 8
+        Top = 14
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 'Search for an audiofile.'
         Alignment = taCenter
         Caption = 'Tag Editor'
@@ -451,10 +458,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnTagEditorClick
       end
       object btnAddToPlaylist: TDnButton
-        Left = 9
-        Top = 73
+        Left = 8
+        Top = 74
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 'Add to playlist.'
         Alignment = taCenter
         Caption = 'Add'
@@ -485,10 +492,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnAddToPlaylistClick
       end
       object btnRemoveFromPlaylist: TDnButton
-        Left = 9
+        Left = 8
         Top = 120
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 'Remove from playlist.'
         Alignment = taCenter
         Caption = 'Remove'
@@ -519,10 +526,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnRemoveFromPlaylistClick
       end
       object btnMoveUp: TDnButton
-        Left = 9
+        Left = 8
         Top = 176
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 'Move up.'
         Alignment = taCenter
         Caption = 'Move Up'
@@ -567,10 +574,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnMoveUpClick
       end
       object btnMoveDown: TDnButton
-        Left = 9
+        Left = 8
         Top = 222
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 'Move down.'
         Alignment = taCenter
         Caption = 'Move Down'
@@ -615,10 +622,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnMoveDownClick
       end
       object btnScanFolder: TDnButton
-        Left = 11
-        Top = 298
+        Left = 8
+        Top = 301
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 
           'Scan folder inc. subfolders. Note: The database will be preserve' +
           'd, new items will be added.'
@@ -651,10 +658,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnScanFolderClick
       end
       object btnCancelScan: TDnButton
-        Left = 11
-        Top = 345
+        Left = 8
+        Top = 349
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 
           'Scan folder inc. subfolders. Note: The database will be preserve' +
           'd, new items will be added.'
@@ -687,10 +694,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnCancelScanClick
       end
       object btnClearLibrary: TDnButton
-        Left = 11
-        Top = 401
+        Left = 8
+        Top = 405
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 
           'Scan folder inc. subfolders. Note: The database will be preserve' +
           'd, new items will be added.'
@@ -723,10 +730,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnClearLibraryClick
       end
       object btnClearMissingTracks: TDnButton
-        Left = 11
-        Top = 448
+        Left = 8
+        Top = 452
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 'Clear missing tracks in the database.'
         Alignment = taCenter
         Caption = 'Clear Missing Tracks'
@@ -758,10 +765,10 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
         OnClick = btnClearMissingTracksClick
       end
       object btnImportRDJProPlaylist: TDnButton
-        Left = 11
-        Top = 503
+        Left = 8
+        Top = 507
         Width = 100
-        Height = 41
+        Height = 40
         Hint = 'Import a RDJ Pro playlist.'
         Alignment = taCenter
         Caption = ' Import  Playlist'
@@ -797,7 +804,7 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       Left = 638
       Top = 0
       Width = 626
-      Height = 549
+      Height = 559
       Margins.Left = 0
       Margins.Top = 0
       Margins.Right = 0
@@ -820,14 +827,11 @@ object HEOSPlaylistEditor: THEOSPlaylistEditor
       ParentFont = False
       TabOrder = 2
       OnMouseDown = grdPlaylistMouseDown
-      ExplicitLeft = 637
-      ExplicitTop = 3
-      ExplicitWidth = 625
     end
   end
   object pnlBottom: TPanel
     Left = 0
-    Top = 692
+    Top = 702
     Width = 1264
     Height = 29
     Align = alBottom

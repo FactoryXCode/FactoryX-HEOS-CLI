@@ -322,8 +322,8 @@ begin
 
   // Windows AAC-LC supports these rates for mono and stereo.
   if ((FSampleRate <> 44100) and (FSampleRate <> 48000)) or
-     ((FChannels <> 1) and (FChannels <> 2)) or
-     not (FBitrateKbps in [96, 128, 160, 192]) then
+     ((FChannels <> 1) and (FChannels <> 2)) or not
+     (FBitrateKbps in [96, 128, 160, 192]) then
     Exit(E_INVALIDARG);
 
   FBytesPerFrame := FChannels * SizeOf(SmallInt);
@@ -521,7 +521,8 @@ begin
   // OutputBuffer.pEvents := nil;
   // or
   ZeroMemory(@OutputBuffer,
-                 SizeOf(OutputBuffer));
+             SizeOf(OutputBuffer));
+
   OutputBuffer.pSample := OutSample;
 
 
@@ -585,8 +586,8 @@ end;
 
 
 function THEOSAacEncoder.EncodeInterleavedFloat32(const pData: PSingle;
-                                                         AFrames: Integer;
-                                                         out AOutBuf: TBytes): HRESULT;
+                                                  AFrames: Integer;
+                                                  out AOutBuf: TBytes): HRESULT;
 var
   hr: HResult;
   Sample: IMFSample;
@@ -684,6 +685,7 @@ begin
       OldLen := Length(Combined);
       SetLength(Combined,
                 OldLen + ChunkLen);
+
       Move(Chunk[0],
            Combined[OldLen],
            ChunkLen);

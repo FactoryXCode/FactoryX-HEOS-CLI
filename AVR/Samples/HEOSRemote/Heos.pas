@@ -245,25 +245,26 @@ var
   DurationMs: Int64;
   Timer: TStopwatch;
   Heartbeat: TStopwatch;
+  ErrorText: string;
 
 begin
 
   Pid := '';
-  Client.Send('heos://player/get_players'#13#10);
+  if not Client.TrySend('heos://player/get_players'#13#10, ErrorText) then Exit;
   Timer := TStopwatch.StartNew();
   Heartbeat := TStopwatch.StartNew();
 
   while not Terminated do
     begin
       if (Pid = '') and (Timer.ElapsedMilliseconds > 6000) then
-        raise Exception.Create('HEOS progress discovery timed out');
+        Exit;
 
-      Line := Trim(Client.ReadLine(#10,
-                                   250));
+      if not Client.TryReadLine(#10, 250, Line, ErrorText) then Exit;
+      Line := Trim(Line);
 
       if (Heartbeat.ElapsedMilliseconds > 20000) then
         begin
-          Client.Send('heos://system/heart_beat'#13#10);
+          if not Client.TrySend('heos://system/heart_beat'#13#10, ErrorText) then Exit;
           Heartbeat := TStopwatch.StartNew();
         end;
 
@@ -295,7 +296,8 @@ begin
             for I := 0 to Players.Count - 1 do
               if (Players.Items[I] is TJSONObject) then
                 begin
-                  Player := TJSONObject(Players.Items[I]);
+                  if not (Players.Items[I] is TJSONObject) then Continue;
+            Player := TJSONObject(Players.Items[I]);
                   if (JsonText(Player,
                                'ip') = FHost) then
                     Pid := JsonText(Player,
@@ -307,7 +309,7 @@ begin
                               'pid');
 
             if (Pid <> '') then
-              Client.Send('heos://system/register_for_change_events?enable=on'#13#10);
+              if not Client.TrySend('heos://system/register_for_change_events?enable=on'#13#10, ErrorText) then Exit;
           end
         else
           if (Command = 'event/player_now_playing_progress') then
@@ -353,6 +355,7 @@ procedure THEOSProgressMonitor.Execute();
 var
   Client: THEOSConnection;
   I: Integer;
+  ErrorText: string;
 
 begin
 
@@ -362,9 +365,8 @@ begin
 
       try
         try
-          Client := THEOSConnection.Create(FHost,
-                                           FPort);
-          Listen(Client);
+          if THEOSConnection.TryConnect(FHost, FPort, 2500, Client, ErrorText) then
+            Listen(Client);
         except
           // Keep the UI clock usable while the event connection reconnects.
         end;
@@ -412,12 +414,14 @@ var
 
 begin
 
-  Client.Send(UTF8Encode('heos://' + Command + #13#10));
+  Result := nil;
+  if not Client.TrySend(UTF8Encode('heos://' + Command + #13#10), FError) then Exit;
   Timer := TStopwatch.StartNew();
 
   while (not Terminated) and (Timer.ElapsedMilliseconds < 6000) do
   begin
-    Line := Trim(Client.ReadLine(#10, 500));
+    if not Client.TryReadLine(#10, 500, Line, FError) then Exit;
+    Line := Trim(Line);
 
     if (Line = '') then
       Continue;
@@ -427,6 +431,8 @@ begin
       if not (Value is TJSONObject) then
         Continue;
 
+      if not (TJSONObject(Value).GetValue('heos') is TJSONObject) then
+        begin FError := 'HEOS response has no valid header'; Exit; end;
       Header := TJSONObject(TJSONObject(Value).GetValue('heos'));
 
       if (JsonText(Header,
@@ -435,7 +441,7 @@ begin
 
       if (JsonText(Header,
                    'result') <> 'success') then
-        raise Exception.Create('HEOS rejected request: ' + JsonText(Header, 'message'));
+        begin FError := 'HEOS rejected request: ' + JsonText(Header, 'message'); Exit; end;
 
       Result := TJSONObject(Value);
       Value := nil;
@@ -446,7 +452,7 @@ begin
     end;
   end;
 
-  raise Exception.Create('HEOS response timed out');
+  if not Terminated then FError := 'HEOS response timed out';
 end;
 
 
@@ -469,24 +475,22 @@ begin
     try
       if (FAction = haSeek) then
         begin
-          SeekReceiverPosition(FHost,
-                                  FSeekPositionMs);
+          if not TrySeekReceiverPosition(FHost, FSeekPositionMs, 60006, FError) then Exit;
           FSummary := 'Receiver accepted seek position.';
           Exit;
         end;
 
-      Client := THEOSConnection.Create(FHost,
-                                        FPort);
+      if not THEOSConnection.TryConnect(FHost, FPort, 2500, Client, FError) then Exit;
 
       Reply := Exchange(Client,
                         'player/get_players',
                         'player/get_players');
+      if Reply = nil then Exit;
 
       try
+        if not (Reply.GetValue('payload') is TJSONArray) then
+          begin FError := 'No HEOS players returned'; Exit; end;
         Players := TJSONArray(Reply.GetValue('payload'));
-
-        if (Players = nil) then
-          raise Exception.Create('No HEOS players returned');
 
         Pid := '';
 
@@ -499,12 +503,12 @@ begin
               Pid := JsonText(Player, 'pid');
           end;
 
-        if (Pid = '') and (Players.Count = 1) then
+        if (Pid = '') and (Players.Count = 1) and (Players.Items[0] is TJSONObject) then
           Pid := JsonText(TJSONObject(Players.Items[0]),
                                       'pid');
 
         if (Pid = '') then
-          raise Exception.Create('Could not identify this receiver in HEOS');
+          begin FError := 'Could not identify this receiver in HEOS'; Exit; end;
 
       finally
         Reply.Free;
@@ -517,6 +521,7 @@ begin
         begin
           Command := 'browse/play_stream?pid=' + Pid + '&url=' + FUrl;
           Reply := Exchange(Client, Command, 'browse/play_stream');
+      if Reply = nil then Exit;
           Reply.Free;
           FSummary := 'HEOS accepted the stream URL. Playback may take a few seconds.';
         end
@@ -526,6 +531,7 @@ begin
             Reply := Exchange(Client,
                               'player/get_play_state?pid=' + Pid,
                               'player/get_play_state');
+      if Reply = nil then Exit;
             try
               Command := JsonText(TJSONObject(Reply.GetValue('heos')),
                                   'message');
@@ -555,6 +561,7 @@ begin
         Reply := Exchange(Client,
                           'player/set_play_state?pid=' + Pid + '&state=' + State,
                           'player/set_play_state');
+      if Reply = nil then Exit;
         Reply.Free;
         FSummary := 'HEOS accepted playback state: ' + State;
       end;

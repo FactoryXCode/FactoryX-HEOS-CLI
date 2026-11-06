@@ -78,6 +78,7 @@ type
   THEOSAudioServer = class(TThread)
   private
     FListener: TSocket;
+    FInitialized: Boolean;
     FFileName, FPath, FMime, FAddress: string;
     FPort: Word;
     FLive: Boolean;
@@ -86,6 +87,7 @@ type
     FQueuedBytes: Integer;
     FRequests: Integer;
     FLastError: string;
+    function CheckSocket(Code: Integer; const Operation: string): Boolean;
 
     procedure Serve(Client: TSocket);
     function Pop(out Data: TBytes): Boolean;
@@ -109,6 +111,7 @@ type
     function Url(): string;
     function Requests(): Integer;
     function LastError(): string;
+    property Initialized: Boolean read FInitialized;
   end;
 
   function AudioMime(const FileName: string): string;
@@ -150,7 +153,14 @@ begin
             if (Ext = '.wma') then
               Result := 'audio/x-ms-wma'
             else
-              raise Exception.Create('Choose an MP3, FLAC, WAV, AAC, M4A or WMA audio file');
+              Result := '';
+end;
+
+
+function THEOSAudioServer.CheckSocket(Code: Integer; const Operation: string): Boolean;
+begin
+  Result := Code <> SOCKET_ERROR;
+  if not Result then FLastError := Format('%s failed (Windows socket error %d)', [Operation, WSAGetLastError]);
 end;
 
 
@@ -194,8 +204,10 @@ begin
   else
     begin
       if not FileExists(FileName) then
-        raise Exception.Create('Music file not found');
+        begin FLastError := 'Music file not found'; Exit; end;
       FMime := AudioMime(FileName);
+      if FMime = '' then
+        begin FLastError := 'Choose an MP3, FLAC, WAV, AAC, M4A or WMA audio file'; Exit; end;
       FPath := '/' + string(Token) + '/track' + LowerCase(ExtractFileExt(FileName));
     end;
 
@@ -204,16 +216,16 @@ begin
                       IPPROTO_TCP);
 
   if (FListener = INVALID_SOCKET) then
-    SocketCheck(SOCKET_ERROR,
-                'Create audio server');
+    if not CheckSocket(SOCKET_ERROR,
+                'Create audio server') then Exit;
 
   Reuse := 1;
-  SocketCheck(setsockopt(FListener,
+  if not CheckSocket(setsockopt(FListener,
                          SOL_SOCKET,
                          SO_REUSEADDR,
                          PAnsiChar(@Reuse),
                          SizeOf(Reuse)),
-                         'Set audio server socket reuse');
+                         'Set audio server socket reuse') then Exit;
 
   FillChar(Addr,
            SizeOf(Addr),
@@ -224,14 +236,15 @@ begin
   Addr.sin_port := htons(Port);
   Addr.sin_addr.S_addr := inet_addr(PAnsiChar(Host));
 
-  SocketCheck(bind(FListener,
+  if not CheckSocket(bind(FListener,
                    Addr,
                    SizeOf(Addr)),
-                   'Bind audio server');
+                   'Bind audio server') then Exit;
 
-  SocketCheck(listen(FListener,
+  if not CheckSocket(listen(FListener,
                      4),
-              'Listen for receiver');
+              'Listen for receiver') then Exit;
+  FInitialized := True;
 end;
 
 
@@ -529,6 +542,7 @@ var
   Mode: u_long;
 
 begin
+  if not FInitialized then Exit;
 
   while not Terminated do
     begin
@@ -589,7 +603,8 @@ var
   IsHead: Boolean;
   Partial: Boolean;
   InvalidRange: Boolean;
-  FileStream: TFileStream;
+  FileStream: THandleStream;
+  FileHandle: THandle;
   StartByte: Int64;
   EndByte: Int64;
   Total: Int64;
@@ -691,11 +706,20 @@ begin
       Exit;
     end;
 
-  FileStream := TFileStream.Create(FFileName,
-                                   fmOpenRead or fmShareDenyWrite);
+  FileHandle := CreateFile(PChar(FFileName), GENERIC_READ, FILE_SHARE_READ, nil,
+                           OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+  if FileHandle = INVALID_HANDLE_VALUE then
+    begin
+      SetError(Format('Cannot open music file (Windows error %d)', [GetLastError]));
+      Respond('404 Not Found', 'Content-Length: 0' + #13#10);
+      Exit;
+    end;
+  FileStream := THandleStream.Create(FileHandle);
 
   try
     Total := FileStream.Size;
+    if Total < 0 then
+      begin SetError('Cannot read music file size'); Exit; end;
     StartByte := 0;
     EndByte := Total - 1;
     Range := '';
@@ -796,7 +820,8 @@ begin
     if IsHead then
       Exit;
 
-    FileStream.Position := StartByte;
+    if FileStream.Seek(StartByte, soBeginning) <> StartByte then
+      begin SetError('Cannot seek in music file'); Exit; end;
 
     while (Remaining > 0) and not Terminated do
       begin
@@ -807,8 +832,8 @@ begin
 
         N := FileStream.Read(Buffer,
                              Count);
-        if (N = 0) then
-          Break;
+        if (N <= 0) then
+          begin SetError('Music file could not be read completely'); Break; end;
 
       if not SendClient(Client,
                         @Buffer[0],
@@ -821,6 +846,7 @@ begin
 
   finally
     FileStream.Free;
+    CloseHandle(FileHandle);
   end;
 end;
 

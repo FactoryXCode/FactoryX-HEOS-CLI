@@ -21,12 +21,14 @@ $dcuPath = Join-Path $outputPath 'DCU'
 New-Item -ItemType Directory -Path $dcuPath -Force | Out-Null
 $libraryPath = Join-Path $DelphiRoot ('lib\' + $Platform.ToLowerInvariant() + '\release')
 $controlsPath = Join-Path $PSScriptRoot 'Controls'
+$localApiPath = Join-Path $repositoryRoot 'Source'
+$localAvrPath = Join-Path $repositoryRoot 'AVR\Source'
 $apiPath = Join-Path $HeosCliRoot 'Source'
 $avrPath = Join-Path $HeosCliRoot 'AVR\Source'
 if (-not (Test-Path -LiteralPath (Join-Path $apiPath 'Heos.Cli.pas'))) { throw 'HeosCliRoot must point to the HEOS API repository containing Source.' }
 Push-Location $PSScriptRoot
 try {
-    & $compiler -B -Q '-NSSystem;Winapi;Vcl;Data;Xml;System.Win;Data.Win;Xml.Win' "-U$controlsPath;$apiPath;$avrPath;$sourcePath;$libraryPath" "-N0$dcuPath" "-E$outputPath" HEOSRemote.dpr
+    & $compiler -B -Q '-NSSystem;Winapi;Vcl;Data;Xml;System.Win;Data.Win;Xml.Win' "-U$controlsPath;$localApiPath;$localAvrPath;$apiPath;$avrPath;$sourcePath;$libraryPath" "-N0$dcuPath" "-E$outputPath" HEOSRemote.dpr
     if ($LASTEXITCODE -ne 0) { throw 'HEOS Remote build failed.' }
 }
 finally { Pop-Location }

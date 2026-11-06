@@ -1,4 +1,4 @@
-﻿// FactoryX
+// FactoryX
 //
 // Copyright: (c) FactoryX. All rights reserved.
 //
@@ -130,14 +130,6 @@ uses
   {Application}
   HEOSAacEncoder;
 
-procedure CheckHR(HR: HRESULT; const Operation: string);
-begin
-
-  if Failed(HR) then
-    raise Exception.CreateFmt('%s failed (0x%.8x)',
-                              [Operation, Cardinal(HR)]);
-end;
-
 constructor THEOSLoopback.Create(Server: THEOSAudioServer; InitializeOnly: Boolean;
                                  ABitrateKbps: Integer; AChannels: Integer);
 begin
@@ -198,14 +190,22 @@ var
   SentFrames,
   DueFrames: Int64;
 
-  procedure Encode(Count: Integer;
+  function CheckHR(HR: HRESULT; const Operation: string): Boolean;
+  begin
+    Result := Succeeded(HR);
+    if not Result then FError := System.SysUtils.Format('%s failed (0x%.8x)', [Operation, Cardinal(HR)]);
+  end;
+
+  function Encode(Count: Integer;
                    Silent: Boolean;
-                   Buffer: PByte);
+                   Buffer: PByte): Boolean;
   var
     Index: Integer;
 
   begin
 
+    Result := False;
+    if Count <= 0 then Exit(True);
     SetLength(Samples,
               Count * FChannels);
 
@@ -233,14 +233,16 @@ var
             end;
       end;
 
-    CheckHR(Encoder.EncodeInterleavedFloat32(@Samples[0],
-                                             Count,
-                                             Encoded),
-           'Encode AAC');
+    if not CheckHR(Encoder.EncodeInterleavedFloat32(@Samples[0],
+                                                    Count,
+                                                    Encoded),
+                                                    'Encode AAC') then
+      Exit;
 
     FServer.Push(Encoded);
     Inc(SentFrames,
         Count);
+    Result := True;
   end;
 
 begin
@@ -252,33 +254,38 @@ begin
 
   try
     try
-      CheckHR(CoInitializeEx(nil,
-                             COINIT_MULTITHREADED),
-              'Initialize audio COM');
+      if not CheckHR(CoInitializeEx(nil,
+                                    COINIT_MULTITHREADED),
+                     'Initialize audio COM') then
+        Exit;
       CoReady := True;
 
-      CheckHR(MFStartup(MF_VERSION,
-                        MFSTARTUP_FULL),
-             'Start Media Foundation');
+      if not CheckHR(MFStartup(MF_VERSION,
+                     MFSTARTUP_FULL),
+                     'Start Media Foundation') then
+        Exit;
+
       MfReady := True;
 
-      CheckHR(CoCreateInstance(CLSID_MMDeviceEnumerator,
-                               nil,
-                               CLSCTX_INPROC_SERVER,
-                               IID_IMMDeviceEnumerator,
-                               Enumerator),
-             'Create audio device enumerator');
+      if not CheckHR(CoCreateInstance(CLSID_MMDeviceEnumerator,
+                                      nil,
+                                      CLSCTX_INPROC_SERVER,
+                                      IID_IMMDeviceEnumerator,
+                                      Enumerator),
+                     'Create audio device enumerator') then Exit;
 
-      CheckHR(Enumerator.GetDefaultAudioEndpoint(eRender,
-                                                 eMultimedia,
-                                                 Device),
-              'Find default Windows playback device');
+      if not CheckHR(Enumerator.GetDefaultAudioEndpoint(eRender,
+                                                        eMultimedia,
+                                                        Device),
+                     'Find default Windows playback device') then
+        Exit;
 
-      CheckHR(Device.Activate(IID_IAudioClient,
-                              CLSCTX_INPROC_SERVER,
-                              nil,
-                              Pointer(Audio)),
-              'Activate WASAPI loopback');
+      if not CheckHR(Device.Activate(IID_IAudioClient,
+                                     CLSCTX_INPROC_SERVER,
+                                     nil,
+                                     Pointer(Audio)),
+                     'Activate WASAPI loopback') then
+        Exit;
 
       FillChar(Format,
                SizeOf(Format),
@@ -291,34 +298,39 @@ begin
       Format.nBlockAlign := 4;
       Format.nAvgBytesPerSec := 176400;
 
-      CheckHR(Audio.Initialize(AUDCLNT_SHAREMODE_SHARED,
-                               AUDCLNT_STREAMFLAGS_LOOPBACK or
-                               AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM or
-                               AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
-                               1000000,
-                               0,
-                               @Format,
-                               nil),
-             'Initialize stereo Windows audio capture');
+      if not CheckHR(Audio.Initialize(AUDCLNT_SHAREMODE_SHARED,
+                                      AUDCLNT_STREAMFLAGS_LOOPBACK or
+                                      AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM or
+                                      AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
+                                      1000000,
+                                      0,
+                                      @Format,
+                                      nil),
+                    'Initialize stereo Windows audio capture') then
+        Exit;
 
-      CheckHR(Audio.GetService(IID_IAudioCaptureClient,
-                               Capture),
-              'Get audio capture service');
+      if not CheckHR(Audio.GetService(IID_IAudioCaptureClient,
+                                      Capture),
+                    'Get audio capture service') then
+        Exit;
 
       Encoder := THEOSAacEncoder.Create();
       Settings.SampleRate := 44100;
       Settings.Channels := FChannels;
       Settings.BitrateKbps := FBitrateKbps;
 
-      CheckHR(Encoder.Initialize(Settings),
-              'Initialize Windows AAC encoder');
+      if not CheckHR(Encoder.Initialize(Settings),
+                     'Initialize Windows AAC encoder') then
+        Exit;
 
       // A diagnostic can verify the device and codec without capturing audio.
       if FInitializeOnly then
         Exit;
 
-      CheckHR(Audio.Start(),
-              'Start loopback capture');
+      if not CheckHR(Audio.Start(),
+                     'Start loopback capture') then
+        Exit;
+
       Running := True;
       FInitialized := True;
       SentFrames := 0;
@@ -327,29 +339,33 @@ begin
 
       while not Terminated do
         begin
-          CheckHR(Capture.GetNextPacketSize(Available),
-                  'Read audio packet size');
+          if not CheckHR(Capture.GetNextPacketSize(Available),
+                         'Read audio packet size') then
+            Exit;
 
         while (Available > 0) and not Terminated do
           begin
-            CheckHR(Capture.GetBuffer(Data,
-                                      Frames,
-                                      Flags,
-                                      nil,
-                                      nil),
-                    'Read Windows audio');
+            if not CheckHR(Capture.GetBuffer(Data,
+                                             Frames,
+                                             Flags,
+                                             nil,
+                                             nil),
+                           'Read Windows audio') then
+              Exit;
             try
               if (Frames > 0) then
-                Encode(Frames,
-                       ((Flags and AUDCLNT_BUFFERFLAGS_SILENT) <> 0),
-                       Data);
+                if not Encode(Frames,
+                              ((Flags and AUDCLNT_BUFFERFLAGS_SILENT) <> 0),
+                              Data) then
+                  Exit;
 
           finally
             Capture.ReleaseBuffer(Frames);
           end;
 
-          CheckHR(Capture.GetNextPacketSize(Available),
-                  'Read next audio packet size');
+          if not CheckHR(Capture.GetNextPacketSize(Available),
+                                                   'Read next audio packet size') then
+            Exit;
         end;
 
         // WASAPI can stop delivering packets when the output device is idle.
@@ -359,9 +375,10 @@ begin
 
         while (DueFrames - SentFrames > 4410) and (I < 10) and not Terminated do
           begin
-            Encode(1024,
-                   True,
-                   nil);
+            if not Encode(1024,
+                          True,
+                          nil) then
+              Exit;
 
             Inc(I);
           end;
@@ -387,7 +404,7 @@ begin
       MFShutdown();
 
     if CoReady then
-      CoUninitialize;
+      CoUninitialize();
 
     FReady.SetEvent();
   end;

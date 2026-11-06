@@ -186,7 +186,7 @@ end;
 constructor TRDJPlaylistDb.Create();
 begin
 
-  inherited Create;
+  inherited Create();
 
   FDriverLink := TFDPhysSQLiteDriverLink.Create(nil);
   FConnection := TFDConnection.Create(nil);
@@ -253,7 +253,7 @@ begin
   // XE7 FireDAC always sets journal_mode while connecting, even in read-only
   // mode. Match the persistent SQLite header to avoid changing a WAL database.
   Stream := TFileStream.Create(FDbFileName,
-                                fmOpenRead or fmShareDenyNone);
+                               fmOpenRead or fmShareDenyNone);
 
   try
 
@@ -392,6 +392,7 @@ begin
 
         Q.Next;
       end;
+
   finally
     Q.Free;
   end;

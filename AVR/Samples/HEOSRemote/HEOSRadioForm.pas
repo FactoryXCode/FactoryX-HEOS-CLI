@@ -206,10 +206,15 @@ type
     FStreamProbe: THeosRadioStreamProbe;
     FProbeItem: THeosRadioItem;
     FProbePlay: Boolean;
+
     procedure PollStreamProbe();
     function CanEditStationLogo(): Boolean;
-    function ApplyStationLogo(const Item: THeosRadioItem; const Value: string): Boolean;
-    procedure SetStationLogo(const Item: THeosRadioItem; const Url: string);
+
+    function ApplyStationLogo(const Item: THeosRadioItem;
+                              const Value: string): Boolean;
+
+    procedure SetStationLogo(const Item: THeosRadioItem;
+                             const Url: string);
 
   private
 
@@ -259,7 +264,7 @@ type
     function IsCustomService(): Boolean;
     function ValidStationUrl(const Url: string): Boolean;
     procedure LoadCustomStations();
-    procedure SaveCustomStations();
+    function SaveCustomStations(): Boolean;
     procedure ShowCustomStations();
     procedure StationFeedback(const Text: string);
 
@@ -289,7 +294,8 @@ type
                         Port: Word = 1255);
 
     procedure StartPlayback(const Command: THeosCommand;
-                              const StationName: string);
+                            const StationName: string);
+
     function ReadyForPlayback(): Boolean;
     procedure NotifyStopped();
     function PlaybackPending(): Boolean;
@@ -311,8 +317,10 @@ uses
   {System}
   System.StrUtils,
   System.IniFiles,
+  Heos.Files,
   System.Math,
   {Application}
+  MainForm,
   LWFileBrowserExDlg;
 
 const
@@ -349,14 +357,14 @@ begin
   FCriteriaIds := TList<string>.Create;
   FItems := TList<THeosRadioItem>.Create;
   FHistory := TList<THeosRadioLocation>.Create;
+
   Directory := GetEnvironmentVariable('LOCALAPPDATA');
 
   if (Directory = '') then
     Directory := GetEnvironmentVariable('APPDATA');
 
   if (Directory <> '') then
-    FStationsFile := IncludeTrailingPathDelimiter(Directory) +
-                       'FactoryX\HEOSRemote\RadioStations.ini';
+    FStationsFile := IncludeTrailingPathDelimiter(Directory) + HEOS_REMOTE_DATADIR + RADIOSTATIONSINIFILE;
 
   try
     LoadCustomStations();
@@ -425,9 +433,11 @@ begin
   THeosRadioStreamProbe.Release(FStreamProbe);
 
   FHost := Host;
-  FClient := THeosClient.Create(Host, Port);
+  FClient := THeosClient.Create(Host,
+                                Port);
   FClient.TimeoutMs := 6000;
-  FStatusClient := THeosClient.Create(Host, Port);
+  FStatusClient := THeosClient.Create(Host,
+                                      Port);
   FStatusClient.TimeoutMs := 6000;
   FPlayerFound := False;
   FPlaying := False;
@@ -456,6 +466,15 @@ begin
 
   FRequest := Kind;
   FRequestId := FClient.Enqueue(Command);
+
+  if FRequestId = 0 then
+    begin
+      FRequest := rrNone;
+      lblStatus.Caption := 'Receiver request queue is full; request was not sent. Retry after pending work completes.';
+      UpdateButtons();
+      Exit;
+    end;
+
   lblStatus.Caption := 'Contacting receiver: ' + Command.Path + ' ...';
   UpdateButtons();
 end;
@@ -524,7 +543,8 @@ begin
         if (Kind = rrCriteria) then
           begin
             FSearchStatus := 'Search unavailable: ' + Message.ErrorText;
-            Browse(RootLocation(), 0);
+            Browse(RootLocation(),
+                   0);
           end
         else
           if (Kind = rrPlay) then
@@ -540,7 +560,7 @@ begin
     case Kind of
       rrPlayers: begin
                    if not (Message.Payload is TJSONArray) then
-                     raise EHeosProtocol.Create('No HEOS players returned.');
+                     begin lblStatus.Caption := 'No HEOS players returned.'; UpdateButtons(); Exit; end;
 
                    Values := TJSONArray(Message.Payload);
 
@@ -562,7 +582,7 @@ begin
                        end;
 
                    if not FPlayerFound then
-                     raise EHeosProtocol.Create('The selected receiver was not found in the HEOS player list.');
+                     begin lblStatus.Caption := 'The selected receiver was not found in the HEOS player list.'; UpdateButtons(); Exit; end;
                    Request(rrSources, THeosCommands.GetMusicSources());
                  end;
 
@@ -570,7 +590,8 @@ begin
 
       rrCriteria: begin
                     ReadCriteria(Message.Payload);
-                    Browse(RootLocation(), 0);
+                    Browse(RootLocation(),
+                           0);
                   end;
 
       rrBrowse: ReadItems(Message);
@@ -616,7 +637,7 @@ var
 begin
 
   if not (Payload is TJSONArray) then
-    raise EHeosProtocol.Create('Receiver did not return a music-source list.');
+    begin lblStatus.Caption := 'Receiver did not return a music-source list.'; Exit; end;
 
   cbService.Clear;
   FSourceIds.Clear;
@@ -634,7 +655,9 @@ begin
     if (Values.Items[I] is TJSONObject) then
       begin
         Obj := TJSONObject(Values.Items[I]);
-        Name := JsonText(Obj, 'name');
+
+        Name := JsonText(Obj,
+                         'name');
 
         if not TryStrToInt64(JsonText(Obj,
                                       'sid'),
@@ -696,11 +719,13 @@ begin
     if (Values.Items[I] is TJSONObject) then
       begin
         Obj := TJSONObject(Values.Items[I]);
-        Id := JsonText(Obj, 'scid');
+        Id := JsonText(Obj,
+                       'scid');
 
         if (Id <> '') then
           begin
-            cbCriteria.Items.Add(JsonText(Obj, 'name'));
+            cbCriteria.Items.Add(JsonText(Obj,
+                                 'name'));
             FCriteriaIds.Add(Id);
           end;
       end;
@@ -711,7 +736,8 @@ begin
       cbCriteria.ItemIndex := 0;
 
       for I := 0 to cbCriteria.Items.Count - 1 do
-        if ContainsText(cbCriteria.Items[I], 'station') then
+        if ContainsText(cbCriteria.Items[I],
+                        'station') then
           cbCriteria.ItemIndex := I;
     end;
 end;
@@ -814,7 +840,7 @@ var
 begin
 
   if not (Message.Payload is TJSONArray) then
-    raise EHeosProtocol.Create('Receiver did not return a station/category list.');
+    begin lblStatus.Caption := 'Receiver did not return a station/category list.'; Exit; end;
 
   if (FNavigation = 0) then
     FHistory.Clear
@@ -841,22 +867,31 @@ begin
         begin
           Obj := TJSONObject(Values.Items[I]);
           Item := Default(THeosRadioItem);
-          Item.Name := JsonText(Obj, 'name');
-          Item.ContainerId := JsonText(Obj, 'cid');
-          Item.MediaId := JsonText(Obj, 'mid');
-          Item.ImageUrl := JsonText(Obj, 'image_url');
+          Item.Name := JsonText(Obj,
+                                'name');
+          Item.ContainerId := JsonText(Obj,
+                                       'cid');
+          Item.MediaId := JsonText(Obj,
+                                   'mid');
+          Item.ImageUrl := JsonText(Obj,
+                                    'image_url');
           Item.SourceId := FLocation.SourceId;
 
-          if (JsonText(Obj, 'sid') <> '') then
+          if (JsonText(Obj,
+                       'sid') <> '') then
             TryStrToInt64(JsonText(Obj,
                                    'sid'),
                           Item.SourceId);
 
-          Item.IsContainer := SameText(JsonText(Obj, 'container'), 'yes') and
-                              (Item.ContainerId <> '');
+          Item.IsContainer := SameText(JsonText(Obj,
+                                                'container'),
+                                       'yes') and  (Item.ContainerId <> '');
 
-          Item.IsStation := SameText(JsonText(Obj, 'type'), 'station') and
-                            SameText(JsonText(Obj, 'playable'), 'yes') and
+          Item.IsStation := SameText(JsonText(Obj,
+                                     'type'),
+                                     'station') and SameText(JsonText(Obj,
+                                                             'playable'),
+                                                             'yes') and
                             (Item.MediaId <> '');
 
           FItems.Add(Item);
@@ -879,7 +914,7 @@ begin
 
   lblLocation.Caption := FLocation.Title;
   lblStatus.Caption := Format('%d entries; starting at %d. Double-click a category or select a station.',
-                                [FReturned, FLocation.First + 1]);
+                              [FReturned, FLocation.First + 1]);
   if (FSearchStatus <> '') then
     lblStatus.Caption := lblStatus.Caption + ' ' + FSearchStatus;
 end;
@@ -936,12 +971,15 @@ begin
     Browse(RootLocation(), 0)
   else
     if (Sender = btnBack) and (FHistory.Count > 0) then
-      Browse(FHistory[FHistory.Count - 1], -1)
+      Browse(FHistory[FHistory.Count - 1],
+             -1)
     else
       if (Sender = btnPreviousPage) and (Location.First > 0) then
         begin
-          Location.First := Max(0, Location.First - RadioPageSize);
-          Browse(Location, 2);
+          Location.First := Max(0,
+                                Location.First - RadioPageSize);
+          Browse(Location,
+                 2);
         end
       else
         if (Sender = btnNextPage) and NextPageAvailable() then
@@ -973,7 +1011,8 @@ begin
       Location.SourceId := Item.SourceId;
       Location.ContainerId := Item.ContainerId;
       Location.Title := FLocation.Title + ' / ' + Item.Name;
-      Browse(Location, 1);
+      Browse(Location,
+             1);
     end
   else
     if Item.IsStation then
@@ -1024,15 +1063,20 @@ begin
         Exit;
       end
     else
-      Command := THeosCommands.PlayStation(FPlayerId, Item.SourceId,
-                                           Item.MediaId, FLocation.ContainerId,
+      Command := THeosCommands.PlayStation(FPlayerId,
+                                           Item.SourceId,
+                                           Item.MediaId,
+                                           FLocation.ContainerId,
                                            Item.Name);
 
     // MainForm owns source handover; retain this station even if selection changes.
     if Assigned(FOnBeforePlay) then
-      FOnBeforePlay(Self, Command, Item.Name)
+      FOnBeforePlay(Self,
+                    Command,
+                    Item.Name)
     else
-      StartPlayback(Command, Item.Name);
+      StartPlayback(Command,
+                    Item.Name);
 
   except
     on E: Exception do
@@ -1053,7 +1097,10 @@ procedure THEOSRadioForm.StartPlayback(const Command: THeosCommand;
 begin
 
   if not ReadyForPlayback() then
-    raise EInvalidOperation.Create('The Radio connection is not ready for playback.');
+    begin
+      lblStatus.Caption := 'The Radio connection is not ready for playback.';
+      Exit;
+    end;
 
   FPlaybackChecking := False;
   FPlaybackConfirmed := False;
@@ -1114,7 +1161,9 @@ begin
   UpdateButtons();
 
   if Assigned(FOnPlayback) then
-    FOnPlayback(Self, FStationName, Playing);
+    FOnPlayback(Self,
+                FStationName,
+                Playing);
 end;
 
 
@@ -1298,7 +1347,8 @@ begin
 end;
 
 
-procedure THEOSRadioForm.RadioClose(Sender: TObject; var Action: TCloseAction);
+procedure THEOSRadioForm.RadioClose(Sender: TObject;
+                                    var Action: TCloseAction);
 begin
 
   Action := caHide;
@@ -1328,6 +1378,7 @@ end;
 procedure THEOSRadioForm.LoadCustomStations();
 var
   Settings: TMemIniFile;
+  ErrorText: string;
   Item: THeosRadioItem;
   I: Integer;
   Count: Integer;
@@ -1340,10 +1391,11 @@ begin
   if (FStationsFile = '') or not FileExists(FStationsFile) then
     Exit;
 
-  Settings := TMemIniFile.Create(FStationsFile,
-                                 TEncoding.UTF8);
+  Settings := TMemIniFile.Create('');
 
   try
+    if not TryLoadHeosIni(FStationsFile, Settings, ErrorText) then
+      begin StationFeedback(ErrorText); Exit; end;
     Count := EnsureRange(Settings.ReadInteger('Stations',
                                               'Count',
                                               0),
@@ -1371,23 +1423,26 @@ begin
 end;
 
 
-procedure THEOSRadioForm.SaveCustomStations();
+function THEOSRadioForm.SaveCustomStations(): Boolean;
 var
   Settings: TMemIniFile;
+  ErrorText: string;
   Sections: TStringList;
   I: Integer;
   Section: string;
 
 begin
 
+  Result := False;
   if (FStationsFile = '') or not ForceDirectories(ExtractFilePath(FStationsFile)) then
-    raise Exception.Create('Cannot create the radio station settings folder.');
+    begin StationFeedback('Cannot create the radio station settings folder.'); Exit; end;
 
-  Settings := TMemIniFile.Create(FStationsFile,
-                                 TEncoding.UTF8);
+  Settings := TMemIniFile.Create('');
   Sections := TStringList.Create;
 
   try
+    if not TryLoadHeosIni(FStationsFile, Settings, ErrorText) then
+      begin StationFeedback(ErrorText); Exit; end;
     Settings.ReadSections(Sections);
 
     for I := 0 to Sections.Count - 1 do
@@ -1412,7 +1467,8 @@ begin
                              FCustomItems[I].ImageUrl);
       end;
 
-    Settings.UpdateFile;
+    Result := TrySaveHeosIni(FStationsFile, Settings, ErrorText);
+    if not Result then StationFeedback(ErrorText);
 
   finally
     Sections.Free;
@@ -1494,7 +1550,7 @@ begin
 
   lblLocation.Caption := 'My stations';
   lblStatus.Caption := Format('%d saved stations. Select a station to play its stream URL.',
-                                [FCustomItems.Count]);
+                              [FCustomItems.Count]);
   UpdateButtons();
 end;
 
@@ -1554,7 +1610,8 @@ begin
   Item.SourceId := -1;
 
   for I := 0 to FCustomItems.Count - 1 do
-    if SameText(FCustomItems[I].Name, Item.Name) then
+    if SameText(FCustomItems[I].Name,
+                Item.Name) then
       begin
         StationFeedback('Not saved: that station name already exists. Remove it first to replace its URL.');
         Exit;
@@ -1563,7 +1620,8 @@ begin
   FCustomItems.Add(Item);
 
   try
-    SaveCustomStations();
+    if not SaveCustomStations() then
+      begin FCustomItems.Delete(FCustomItems.Count - 1); Exit; end;
 
   except
     on E: Exception do
@@ -1591,8 +1649,9 @@ begin
 end;
 
 
-procedure THEOSRadioForm.StationContextPopup(Sender: TObject; MousePos: TPoint;
-                                              var Handled: Boolean);
+procedure THEOSRadioForm.StationContextPopup(Sender: TObject;
+                                             MousePos: TPoint;
+                                             var Handled: Boolean);
 var
   Row: TListItem;
 
@@ -1720,7 +1779,8 @@ begin
         FCustomItems[I] := Updated;
 
         try
-          SaveCustomStations();
+          if not SaveCustomStations() then
+            begin FCustomItems[I] := Previous; Exit; end;
         except
           FCustomItems[I] := Previous;
           raise;

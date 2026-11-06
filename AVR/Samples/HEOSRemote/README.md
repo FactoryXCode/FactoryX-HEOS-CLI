@@ -1,14 +1,14 @@
 # HEOS Remote AVR sample 1.1.13
 
-Minimum supported Delphi version: XE7.
+Minimum suported Delphi version: XE7.
 
 This is the complete Delphi VCL HEOS Remote application, including its DFM forms, custom controls, playlist editor, RDJ-derived library support, native audio streaming and AVR control code. It is copied from the working application; the original project is unchanged. Receiver databases, INI files, credentials, compiled output and local IDE settings are not included.
 
-The existing file/Windows-audio and AVR controls use their original `HEOSTransport.pas` and `Heos.pas` adapters. The new Internet Radio window uses `THeosClient` and `THeosCommands` directly from the API at `..\GitHub\FactoryX-HEOS-CLI`. The reusable APIs are in `AVR/Source` and the repository's top-level `Source`; this source snapshot has not been silently migrated to them. `AVR/Samples/AvrCliDemo.dpr` demonstrates the new AVR API directly.
+The existing file/Windows-audio and AVR controls use their original `HEOSTransport.pas` and `Heos.pas` adapters. The new Internet Radio window uses `THeosClient` and `THeosCommands` directly from the API at `D:\GitHub\FactoryX-HEOS-CLI`. The reusable APIs are in `AVR/Source` and the repository's top-level `Source`; this source snapshot has not been silently migrated to them. `AVR/Samples/AvrCliDemo.dpr` demonstrates the new AVR API directly.
 
 The API-based copy is available in [Examples/HEOSRemoteApi](../../../Examples/HEOSRemoteApi/README.md), using `THeosClient` and `TAvrClient`.
 
-## Internet radio
+## Internet radio (version 1.1)
 
 Click **Radio** on the main toolbar. The receiver's advertised radio services
 (including TuneIn and HEOS Favorites where available) are listed. Double-click
@@ -33,7 +33,7 @@ No network credentials or station catalogue are bundled.
 
 See [RADIO.md](RADIO.md) for design and verification notes.
 
-## Floating Radio window and station logos
+## Floating Radio window and station logos (version 1.1.11)
 
 The **Radio** window is modeless: leave it open while adjusting volume, balance,
 zones and other controls on the main console. Closing Radio hides the window;
@@ -49,7 +49,7 @@ logos show a text placeholder without affecting playback. PNG, JPEG, GIF and BMP
 are supported; the URL need not have a filename extension. The artwork controls
 and layout are editable in `HEOSRadioForm.dfm`.
 
-## Receiver address and startup
+## Receiver address and startup (version 1.1.1)
 
 Startup follows this route:
 
@@ -63,12 +63,30 @@ Startup follows this route:
 5. Update `edHost` and the INI with the confirmed IP. If no device is found,
    report it in the status and log; no radio commands are sent to the old address.
 
+Settings are stored per user at
+`%LOCALAPPDATA%\FactoryX\HEOSRemote\Receiver.ini`:
 
-Only confirmed addresses are saved. Radio waits for a startup check
+```ini
+[Receiver]
+Host=<last confirmed receiver IPv4 address>
+DeviceId=<device UDN obtained during discovery>
+```
+
+Only confirmed addresses are saved. Radio waits for an outstanding startup check
 or discovery to finish. Initial socket connection failures are returned by the
 API as error messages, without raising a first-chance socket exception. Use
 **Find HEOS** to retry discovery if the receiver moves or becomes available later.
 
+## Build
+
+This application requires MfPack's `src` folder as well as Delphi XE7 or higher up to 13.1. Its custom `TDn` controls are included under `Controls`. For form editing, install the included `Controls/HEOSControls.dproj` package in the Win32 Delphi IDE if these classes are not installed already.
+
+```powershell
+.\Build.ps1 -MfPackRoot 'D:\PROJECTS\MfPack' -Platform Win32
+.\Build.ps1 -MfPackRoot 'D:\PROJECTS\MfPack' -Platform Win64
+```
+
+Executables and DCUs go under the repository's `Build` directory. For IDE builds, set the `MfPackRoot` environment variable before starting Delphi, or set that MSBuild property when invoking `HEOSRemote.dproj`. Its search path uses `Controls`, `$(MfPackRoot)\src` and `$(HeosCliRoot)\Source`. The HEOS API root defaults to `D:\GitHub\FactoryX-HEOS-CLI`; override `-HeosCliRoot` in Build.ps1 or that MSBuild property if you move it. Both Debug and Release use these paths.
 
 The application's longer development notes are preserved in `APP-NOTES.md` and `RDJ-SOURCE-NOTES.md`. Main Zone and Zone 2, tone controls and channel levels use the AVR protocol; HEOS playback uses its separate CLI. Availability depends on the receiver's settings and firmware. No receiver is contacted by building the project.
 
@@ -80,7 +98,7 @@ select one and click **Play station**. The receiver fetches the audio directly.
 A website or hostname alone is not necessarily an audio stream; include the
 stream port/path when needed. The receiver must support the stream format.
 
-Stations persist in `..\HEOSRemote\RadioStations.ini`
+Stations persist in `%LOCALAPPDATA%\FactoryX\HEOSRemote\RadioStations.ini`
 (UTF-8), separately from receiver settings. **Remove station** deletes the
 selected custom entry; playback continues until stopped. These are personal
 application entries, not public TuneIn listings or receiver HEOS Favorites.
@@ -107,7 +125,7 @@ commands and browsing retain their own connection; status refresh never
 replays Play/Stop. The regression receiver holds unknown status on the
 connection which sent Play, while a fresh status connection reports play.
 
-## Receiver capabilities
+## Receiver capabilities (1.1.11)
 
 The console uses `Avr.Capabilities.pas` from `D:\GitHub\FactoryX-HEOS-CLI\AVR\Source`.
 Both the API `Source` and `AVR/Source` folders are included by the project and build script.
@@ -129,14 +147,14 @@ Use Read status to verify the receiver and refresh capabilities again.
 Capability regression checks:
 
 ```powershell
-python ..\FactoryX-HEOS-CLI\AVR\Tests\RunCapabilitiesTests.py `
-  --sample-root ..\FactoryX-HEOS-CLI\AVR\Samples\HEOSRemote `
-  --mfpack-root ..\MfPack
+python D:\GitHub\FactoryX-HEOS-CLI\AVR\Tests\RunCapabilitiesTests.py `
+  --sample-root D:\PROJECTS\FactoryX-HEOS-CLI\AVR\Samples\HEOSRemote `
+  --mfpack-root D:\PROJECTS\MfPack
 ```
 
 These use local HTTP/TCP simulators and do not control the actual receiver.
 
-## Custom stations
+## Custom stations (1.1.12)
 
 Right-click a row in **My stations** to remove that saved station or set its
 logo URL (PNG, JPEG, GIF or BMP). Removing a saved entry does not stop playback.
@@ -151,6 +169,8 @@ is still confirmed separately through HEOS.
 Use a direct audio stream URL for radio. A website with an embedded browser/PWA
 player is not itself an audio stream, and HEOS cannot run that page's JavaScript.
 RDJ Pro can publish background AAC alongside its fragmented-MP4 browser broadcast.
+For FactoryX Radio, use `https://factoryxradio.asuscomm.com/radio/live.aac` while
+RDJ's public broadcast is active. HEOS Remote does not start the RDJ sender.
 
 Custom stations also support local artwork: right-click a station in My stations,
 choose **Choose station logo...**, and select a PNG, JPEG, GIF or BMP with the LW
@@ -184,3 +204,7 @@ removed; choosing another station for playback remains available by double-click
 ## Windows-audio AAC settings
 
 The existing Setup bit-rate and channel controls select 96, 128, 160 or 192 kbps and stereo or mono for **Stream Windows audio**. Defaults are 192 kbps stereo. Choices are saved in the `[AAC]` section of `Receiver.ini`, even without a connected receiver. Stop Windows streaming to edit them; they apply on the next start. Capture stays at 44.1 kHz stereo, with mono averaging left and right before AAC-LC/ADTS encoding. File playback and receiver-direct radio keep their original formats.
+
+## Live error handling
+
+Live HEOS operations report expected network, receiver, capture and encoder failures through status/log results. They do not raise Delphi exceptions or open modal error dialogs. Checked socket methods distinguish an ordinary polling timeout from disconnect/error; playback commands are never replayed after an uncertain send. INI writes use checked OS I/O and replace the previous file only after a complete save.
