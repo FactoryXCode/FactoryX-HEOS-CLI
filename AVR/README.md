@@ -166,7 +166,7 @@ The read-only AVR example was also verified against the AVR-X2700H DAB in standb
 The full application is built separately with its sample-local `Build.ps1 -MfPackRoot ...`; its included controls and DFM layouts are preserved.
 
 ## Important note
-Build scripts can't be used by Delphi Community versions, because they lack the commandline compiler.
+Build scripts can't be used with Delphi Community versions, because they do not include the commandline compiler.
 
 
 ## References and notices
