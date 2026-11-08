@@ -19,7 +19,7 @@ The API's have the following samples:
 
 ![](https://github.com/FactoryXCode/FactoryX-HEOS-CLI/blob/main/Pic/SimpleHEOSRemote_s.png)  
   
-- The complete HEOS Remote application adds playlist editing, file streaming, playlist streaming and Windows audio (loopback) streaming.
+- The complete HEOS Remote application adds playlist editing, file streaming, playlist streaming, Windows audio (loopback) streaming and DXGI Desktop Duplication streaming.
 Its controls and form layouts are included for editing in the Delphi IDE.
 
 ![](https://github.com/FactoryXCode/FactoryX-HEOS-CLI/blob/main/Pic/HEOSRemote_s.png)
