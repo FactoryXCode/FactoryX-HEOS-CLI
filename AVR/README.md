@@ -15,7 +15,7 @@ Commands, inputs, tone and surround features depend on the product, firmware and
 | `Source/Avr.Capabilities.pas` | Background device capability XML, tri-state support and identity-based INI cache |
 | `Source/Avr.Client.pas` | Persistent asynchronous connection, serialized request queue and event delivery |
 | `Samples/AvrCliDemo.dpr` | Read-only console example using the new AVR API |
-| `Samples/HEOSRemote/HEOSRemote.dproj` | Complete original HEOS Remote VCL application, controls and forms |
+| `Samples/HEOSRemote/HEOSRemote.dpr` | Complete original HEOS Remote VCL application, controls and forms |
 | `Tests/AvrApiTests.dpr` | Validation and simulator checks |
 | `Tests/RunAvrSimulator.py` | Local TCP simulator using Python's standard library |
 
