@@ -164,7 +164,9 @@ The build script compiles both APIs, examples and tests for Win32/Win64. `-RunTe
 The read-only AVR example was also verified against the AVR-X2700H DAB in standby, reading power, both zones, volume, mute, source, front levels, tone and surround settings without activating the receiver.
 
 The full application is built separately with its sample-local `Build.ps1 -MfPackRoot ...`; its included controls and DFM layouts are preserved.
-Important note: The build script can't be used by Delphi Community versions, because they lack the commandline compiler.
+
+## Important note
+Build scripts can't be used by Delphi Community versions, because they lack the commandline compiler.
 
 
 ## References and notices
