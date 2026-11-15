@@ -21,14 +21,14 @@
 // CHANGE LOG
 // Date       Person              Reason
 // ---------- ------------------- ----------------------------------------------
-// 24/08/2026 All                 Moby release  SDK 10.0.28000.2705  (Windows 11)
+// 15/11/2026 All                 Carmel release  SDK 10.0.28000.2705 (Windows 11)
 //------------------------------------------------------------------------------
 //
 // Remarks: Requires Windows 10 or higher.
 //          Please, read documentation carefully!
 //
 // Related objects: -
-// Related projects: MfPackX400
+// Related projects: MfPackX410
 // Known Issues: -
 //
 // Compiler version: 23 up to 35
@@ -356,14 +356,13 @@ begin
                SizeOf(Host),
                0);
 
-      SocketCheck(gethostname(Host,
-                  SizeOf(Host)),
-                  'Get local host');
+      if gethostname(Host, SizeOf(Host)) = SOCKET_ERROR then
+        begin FError := 'Could not read the local network host'; Exit; end;
 
       Entry := gethostbyname(Host);
 
       if Entry = nil then
-        raise Exception.Create('Could not enumerate network interfaces');
+        begin FError := 'Could not enumerate network interfaces'; Exit; end;
 
       FillChar(Group,
                SizeOf(Group),
@@ -428,7 +427,7 @@ begin
       end;
 
       if (Sockets.Count = 0) then
-        raise Exception.Create('No active IPv4 network interface was found');
+        begin FError := 'No active IPv4 network interface was found'; Exit; end;
 
       Clock := TStopwatch.StartNew();
 

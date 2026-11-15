@@ -4,9 +4,10 @@ object HEOSForm: THEOSForm
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'HEOS Remote 1.1.16'
-  ClientHeight = 620
+  ClientHeight = 621
   ClientWidth = 810
   Color = 4865081
+  Constraints.MinHeight = 650
   Constraints.MinWidth = 806
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -26,11 +27,13 @@ object HEOSForm: THEOSForm
     Left = 0
     Top = 33
     Width = 810
-    Height = 587
+    Height = 588
     Align = alClient
     Color = 5850948
     ParentBackground = False
     TabOrder = 0
+    ExplicitLeft = 1
+    ExplicitHeight = 587
     object AddressLabel: TLabel
       Left = 42
       Top = 24
@@ -48,7 +51,7 @@ object HEOSForm: THEOSForm
     end
     object FStatus: TLabel
       Left = 1
-      Top = 384
+      Top = 385
       Width = 808
       Height = 36
       Align = alBottom
@@ -69,7 +72,7 @@ object HEOSForm: THEOSForm
     end
     object PcAddressLabel: TLabel
       Left = 19
-      Top = 154
+      Top = 151
       Width = 118
       Height = 17
       Caption = 'PC IP (blank = auto):'
@@ -81,8 +84,8 @@ object HEOSForm: THEOSForm
       ParentFont = False
     end
     object PortLabel: TLabel
-      Left = 362
-      Top = 154
+      Left = 273
+      Top = 151
       Width = 62
       Height = 17
       Caption = 'HTTP port:'
@@ -111,7 +114,7 @@ object HEOSForm: THEOSForm
     object Bevel9: TBevel
       Left = 18
       Top = 211
-      Width = 429
+      Width = 411
       Height = 65
     end
     object Label10: TLabel
@@ -184,6 +187,9 @@ object HEOSForm: THEOSForm
       Top = 21
       Width = 290
       Height = 25
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvNone
       Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
@@ -196,8 +202,8 @@ object HEOSForm: THEOSForm
     end
     object PcAddressEdit: TEdit
       Left = 143
-      Top = 154
-      Width = 185
+      Top = 151
+      Width = 110
       Height = 25
       BevelInner = bvNone
       BevelKind = bkSoft
@@ -211,25 +217,30 @@ object HEOSForm: THEOSForm
       Font.Style = []
       ParentFont = False
       TabOrder = 2
-      TextHint = '0.0.0.0'
+      TextHint = '225.225.225.225'
     end
     object StreamPortEdit: TEdit
-      Left = 430
+      Left = 339
       Top = 151
       Width = 90
       Height = 25
+      AutoSize = False
       BevelInner = bvNone
       BevelKind = bkSoft
       BevelOuter = bvRaised
       BorderStyle = bsNone
       Color = 9216
+      Ctl3D = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = []
       NumbersOnly = True
+      ParentCtl3D = False
       ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
       TabOrder = 3
       Text = '8890'
       TextHint = '8890'
@@ -273,6 +284,9 @@ object HEOSForm: THEOSForm
       Top = 61
       Width = 285
       Height = 25
+      BevelInner = bvNone
+      BevelKind = bkSoft
+      BevelOuter = bvNone
       Color = 9216
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
@@ -295,7 +309,7 @@ object HEOSForm: THEOSForm
     end
     object memFLog: TMemo
       Left = 1
-      Top = 420
+      Top = 421
       Width = 808
       Height = 166
       Align = alBottom
@@ -313,6 +327,7 @@ object HEOSForm: THEOSForm
       ReadOnly = True
       ScrollBars = ssVertical
       TabOrder = 6
+      ExplicitTop = 420
     end
     object btnSelectInput: TDnButton
       Tag = 7
@@ -576,7 +591,7 @@ object HEOSForm: THEOSForm
     Left = 0
     Top = 33
     Width = 810
-    Height = 587
+    Height = 588
     Align = alClient
     Color = 4865081
     DoubleBuffered = True
@@ -584,6 +599,7 @@ object HEOSForm: THEOSForm
     ParentDoubleBuffered = False
     TabOrder = 1
     ExplicitLeft = -1
+    ExplicitHeight = 587
     object Bevel3: TBevel
       Left = 429
       Top = 31
@@ -616,7 +632,7 @@ object HEOSForm: THEOSForm
     end
     object lblDuration: TLabel
       Left = 439
-      Top = 516
+      Top = 513
       Width = 105
       Height = 17
       Margins.Left = 2
@@ -633,7 +649,7 @@ object HEOSForm: THEOSForm
     end
     object lblPlayed: TLabel
       Left = 563
-      Top = 516
+      Top = 513
       Width = 93
       Height = 17
       Margins.Left = 2
@@ -695,7 +711,7 @@ object HEOSForm: THEOSForm
     end
     object lblZones: TLabel
       Left = 439
-      Top = 281
+      Top = 283
       Width = 51
       Height = 13
       Hint = 'Zone'#39's'
@@ -975,7 +991,7 @@ object HEOSForm: THEOSForm
     end
     object lblStreamInfo: TLabel
       Left = 1
-      Top = 546
+      Top = 547
       Width = 808
       Height = 40
       Align = alBottom
@@ -998,7 +1014,6 @@ object HEOSForm: THEOSForm
       WordWrap = True
       OnMouseDown = lblStreamInfoMouseDown
       ExplicitLeft = 0
-      ExplicitTop = 547
     end
     object tbBalance: TDnTrackBar
       Left = 148
@@ -1891,7 +1906,6 @@ object HEOSForm: THEOSForm
       ForegroundPictureEnabled = True
       OnMouseMove = pbProgressMouseMove
       OnMouseUp = pbProgressMouseUp
-      ExplicitLeft = 0
     end
     object btnMainZone: TDnButton
       Left = 439

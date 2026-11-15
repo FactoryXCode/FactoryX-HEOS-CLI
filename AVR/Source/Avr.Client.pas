@@ -1,4 +1,4 @@
-﻿// FactoryX
+// FactoryX
 //
 // Copyright: FactoryX. All rights reserved.
 //
@@ -21,13 +21,13 @@
 // CHANGE LOG
 // Date       Person              Reason
 // ---------- ------------------- ----------------------------------------------
-// 24/08/2026 All                 Moby release  SDK 10.0.28000.2705  (Windows 11)
+// 15/11/2026 All                 Carmel release  SDK 10.0.28000.2705 (Windows 11)
 //------------------------------------------------------------------------------
 //
 // Remarks: Requires Windows 10 or higher.
 //
 // Related objects: RDJ Pro
-// Related projects: MfPackX400
+// Related projects: MfPackX410
 // Known Issues: -
 //
 // Compiler version: 23 up to 35
@@ -111,9 +111,10 @@ type
     FGeneration: Cardinal;
     FNextSendAt: UInt64;
     FMaximumVolume: Double;
+    FError: string;
 
     procedure CloseConnection();
-    procedure OpenConnection();
+    function OpenConnection(): Boolean;
     function Cancelled(): Boolean;
     
     function ReadValue(ATimeout: Integer; out AValue: TAvrValue): Boolean;
@@ -275,6 +276,7 @@ function TAvrClient.EnqueueBatch(const ACommands: array of TAvrCommand): TArray<
 var
   i: Integer;
   Pending: TAvrPending;
+  Message: TAvrMessage;
 
 begin
 
@@ -287,7 +289,14 @@ begin
   try
 
     if (FPending.Count + Length(ACommands) > 256) or (FMessages.Count >= 4096) then
-      raise EInvalidOperation.Create('AVR queue is full; dispatch pending messages.');
+      begin
+        Message := TAvrMessage.Create;
+        Message.Kind := amError;
+        Message.ErrorText := 'AVR queue is full; command was not sent.';
+        Post(Message);
+        SetLength(Result, 0);
+        Exit;
+      end;
 
     for i := 0 to High(ACommands) do
       begin
@@ -314,7 +323,7 @@ var
 begin
 
   Ids := EnqueueBatch([ACommand]);
-  Result := Ids[0];
+  if Length(Ids) = 0 then Result := 0 else Result := Ids[0];
 end;
 
 
@@ -433,7 +442,8 @@ begin
   FLock.Acquire;
   try
 
-    if (FMessages.Count >= 4096) and (AMessage.Kind in [amEvent, amConnection]) then
+    if (FMessages.Count >= 4096) and ((AMessage.Kind in [amEvent, amConnection]) or
+       ((AMessage.Kind = amError) and (AMessage.RequestId = 0))) then
       begin
 
         Inc(FDropped);
@@ -555,17 +565,17 @@ begin
 end;
 
 
-procedure TAvrWorker.OpenConnection();
+function TAvrWorker.OpenConnection(): Boolean;
 begin
 
   if not Assigned(FConnection) then
     begin
 
-      FConnection := THeosConnection.Create(FOwner.FHost,
-                                            FOwner.FPort,
-                                            FOwner.FConnectTimeoutMs);
+      if not THeosConnection.TryConnect(FOwner.FHost, FOwner.FPort,
+                                        FOwner.FConnectTimeoutMs, FConnection, FError) then Exit(False);
       FOwner.SetConnected(True);
     end;
+  Result := True;
 end;
 
 
@@ -577,8 +587,10 @@ var
 
 begin
 
-  Line := Trim(FConnection.ReadLine(#13,
-                                    ATimeout));
+  Result := False;
+  AValue := Default(TAvrValue);
+  if not FConnection.TryReadLine(#13, ATimeout, Line, FError) then Exit;
+  Line := Trim(Line);
 
   Result := (Line <> '');
   AValue := Default(TAvrValue);
@@ -587,7 +599,7 @@ begin
     Exit;
 
   if (Line = '?') or (Line = 'ERROR') then
-    raise EInvalidOperation.Create('Receiver rejected the AVR command.');
+    begin FError := 'Receiver rejected the AVR command.'; Exit(False); end;
 
   AValue := ParseAvrValue(Line);
   
@@ -647,84 +659,65 @@ end;
 procedure TAvrWorker.Process(const APending: TAvrPending);
 var
   Message: TAvrMessage;
-  Value: TAvrValue;
-  Candidate: TAvrValue;
-  Deadline: UInt64;
-  Sent: Boolean;
+  Sent, Success: Boolean;
+
+  function ExecuteCommand(): Boolean;
+  var
+    Value, Candidate: TAvrValue;
+    Deadline: UInt64;
+  begin
+    Result := False;
+    if not OpenConnection() then Exit;
+    Deadline := GetTickCount64 + 80;
+    while not Cancelled() and (GetTickCount64 < Deadline) do
+      if not ReadValue(10, Value) then Break;
+    if FError <> '' then Exit;
+    while not Cancelled() and (GetTickCount64 < FNextSendAt) do Sleep(10);
+    if Cancelled() then
+      begin FError := 'AVR request cancelled before transmission.'; Exit; end;
+    Sent := True;
+    if not FConnection.TrySend(AnsiString(APending.Command.Text) + #13, FError) then Exit;
+    FNextSendAt := GetTickCount64 + UInt64(APending.Command.DelayMs);
+    Deadline := GetTickCount64 + UInt64(FOwner.FTimeoutMs);
+    Candidate := Default(TAvrValue);
+    repeat
+      if Cancelled() then
+        begin FError := 'AVR request cancelled.'; Exit; end;
+      if ReadValue(50, Value) then
+        begin
+          if (Value.Kind = APending.Command.ReplyKind) or (APending.Command.ReplyKind = avUnknown) then
+            Candidate := Value;
+          if Matches(APending.Command, Candidate) then
+            begin Message.Kind := amReply; Message.Value := Candidate; Exit(True); end;
+        end;
+      if FError <> '' then Exit;
+    until GetTickCount64 >= Deadline;
+    FError := 'Receiver did not confirm the AVR command before timeout.';
+  end;
 
 begin
-
   Sent := False;
+  Success := False;
+  FError := '';
   Message := TAvrMessage.Create;
   Message.RequestId := APending.Id;
   Message.CommandText := APending.Command.Text;
-
   try
-
     try
-
-      OpenConnection();
-      Deadline := GetTickCount64 + 80;
-      
-      // Deliver buffered notifications before sending the next request.
-      while not Cancelled() and (GetTickCount64 < Deadline) do
-        if not ReadValue(10,
-                         Value) then
-          Break;
-
-      while not Cancelled() and (GetTickCount64 < FNextSendAt) do
-        Sleep(10);
-      
-      if Cancelled() then
-        raise EAbort.Create('AVR request cancelled.');
-
-      Sent := True;
-      FConnection.Send(AnsiString(APending.Command.Text) + #13);
-      FNextSendAt := GetTickCount64 + UInt64(APending.Command.DelayMs);
-      Deadline := GetTickCount64 + UInt64(FOwner.FTimeoutMs);
-      Candidate := Default(TAvrValue);
-
-      repeat
-
-        if Cancelled() then
-          raise EAbort.Create('AVR request cancelled.');
-
-        if ReadValue(50, Value) then
-          begin
-
-            if (Value.Kind = APending.Command.ReplyKind) or (APending.Command.ReplyKind = avUnknown) then
-              Candidate := Value;
-
-            // MVMAX may arrive after a capped MV reply.
-            if Matches(APending.Command,
-                       Candidate) then
-              begin
-
-                Message.Kind := amReply;
-                Message.Value := Candidate;
-                FOwner.Post(Message);
-                Message := nil;
-                Exit;
-              end;
-          end;
-      until (GetTickCount64 >= Deadline);
-
-      raise EInvalidOperation.Create('Receiver did not confirm the AVR command before timeout.');
+      Success := ExecuteCommand();
     except
-
-      on E: Exception do
-        begin
-
-          Message.Kind := amError;
-          Message.ErrorText := E.Message;
-          Message.DeliveryUnknown := Sent;
-          CloseConnection();
-          FOwner.Post(Message);
-          Message := nil;
-        end;
+      on E: Exception do FError := E.Message;
     end;
+    if not Success then
+      begin
+        Message.Kind := amError;
+        Message.ErrorText := FError;
+        Message.DeliveryUnknown := Sent;
+        CloseConnection();
+      end;
+    FOwner.Post(Message);
+    Message := nil;
   finally
-
     Message.Free;
   end;
 end;
@@ -758,8 +751,16 @@ begin
 
               try
 
-                ReadValue(50,
-                          Value);
+                FError := '';
+                ReadValue(50, Value);
+                if FError <> '' then
+                  begin
+                    Message := TAvrMessage.Create;
+                    Message.Kind := amError;
+                    Message.ErrorText := FError;
+                    CloseConnection();
+                    FOwner.Post(Message);
+                  end;
               except
 
                 on E: Exception do

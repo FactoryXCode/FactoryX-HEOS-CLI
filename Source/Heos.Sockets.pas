@@ -1,4 +1,4 @@
-// FactoryX
+﻿// FactoryX
 //
 // Copyright: FactoryX. All rights reserved.
 //
@@ -10,7 +10,7 @@
 // Release date: 24-01-2026
 // Language: ENU
 //
-// Revision Version: 4.0.0
+// Revision Version: 4.1.0
 // Description: .
 //
 // Company: FactoryX
@@ -21,14 +21,14 @@
 // CHANGE LOG
 // Date       Person              Reason
 // ---------- ------------------- ----------------------------------------------
-// 24/08/2026 All                 Moby release  SDK 10.0.28000.2705  (Windows 11)
+// 15/11/2026 All                 Carmel release  SDK 10.0.28000.2705 (Windows 11)
 //------------------------------------------------------------------------------
 //
 // Remarks: Requires Windows 10 or higher.
 //          Please, read documentation carefully!
 //
 // Related objects: -
-// Related projects: MfPackX400
+// Related projects: MfPackX410
 // Known Issues: -
 //
 // Compiler version: 23 up to 35
@@ -63,255 +63,122 @@ unit Heos.Sockets;
 
 interface
 
-uses
-
-  {WinApi}
-  WinApi.Windows,
-  WinApi.WinSock,
-  {System}
-  System.SysUtils;
+uses WinApi.Windows, WinApi.WinSock, System.SysUtils;
 
 type
-
   EHeosSocket = class(Exception);
-
   THeosConnection = class
   private
     FSocket: TSocket;
     FReadBuffer: UTF8String;
-    constructor CreateClosed();
-
+    constructor CreateSocket(ASocket: TSocket);
   public
-
-    constructor Create(const Host: string;
-                       Port: Word;
-                       TimeoutMs: Integer = 2500);
-
-    class function TryConnect(const Host: string;
-                                Port: Word;
-                                TimeoutMs: Integer;
-                                out Connection: THeosConnection;
-                                out ErrorText: string): Boolean; static;
-
-    destructor Destroy(); override;
-
+    // Compatibility entry points. Live callers should use the Try methods.
+    constructor Create(const Host: string; Port: Word; TimeoutMs: Integer = 2500);
+    destructor Destroy; override;
+    class function TryConnect(const Host: string; Port: Word; TimeoutMs: Integer;
+      out Connection: THeosConnection; out ErrorText: string): Boolean; static;
+    function TrySend(const Text: AnsiString; out ErrorText: string): Boolean;
+    function TryReadLine(Delimiter: AnsiChar; TimeoutMs: Integer;
+      out Line: string; out ErrorText: string): Boolean;
     procedure Send(const Text: AnsiString);
-    function ReadLine(Delimiter: AnsiChar;
-                      TimeoutMs: Integer): string;
-
+    function ReadLine(Delimiter: AnsiChar; TimeoutMs: Integer): string;
     property Handle: TSocket read FSocket;
   end;
 
-
-  function SocketReady(S: TSocket;
-                       Writing: Boolean;
-                       TimeoutMs: Integer): Boolean;
-
-  procedure SendBytes(S: TSocket;
-                      Data: Pointer;
-                      Count: Integer);
-
-  procedure SendText(S: TSocket;
-                     const Text: AnsiString);
-
-  function ReadHeader(S: TSocket): string;
-
-  procedure SetSocketTimeout(S: TSocket;
-                             TimeoutMs: Integer);
-
-  function IPv4Valid(const Value: string): Boolean;
-
-  function ProbeReceiver(const Host: string;
-                            Port: Word;
-                            TimeoutMs: Integer;
-                            out ErrorText: string): Boolean;
-
-  function LocalAddressFor(const Receiver: string): string;
-
-  procedure SocketCheck(Code: Integer;
-                        const Operation: string);
-
+function TrySocketReady(S: TSocket; Writing: Boolean; TimeoutMs: Integer;
+  out Ready: Boolean; out ErrorText: string): Boolean;
+function TrySendBytes(S: TSocket; Data: Pointer; Count: Integer; out ErrorText: string): Boolean;
+function TryReadHeader(S: TSocket; out Header: string; out ErrorText: string): Boolean;
+function TryLocalAddressFor(const Receiver: string; out Address: string; out ErrorText: string): Boolean;
+function SocketReady(S: TSocket; Writing: Boolean; TimeoutMs: Integer): Boolean;
+procedure SendBytes(S: TSocket; Data: Pointer; Count: Integer);
+procedure SendText(S: TSocket; const Text: AnsiString);
+function ReadHeader(S: TSocket): string;
+procedure SetSocketTimeout(S: TSocket; TimeoutMs: Integer);
+function IPv4Valid(const Value: string): Boolean;
+function ProbeReceiver(const Host: string; Port: Word; TimeoutMs: Integer; out ErrorText: string): Boolean;
+function LocalAddressFor(const Receiver: string): string;
+procedure SocketCheck(Code: Integer; const Operation: string);
 
 implementation
 
-uses
-
-  {System}
-  System.Classes,
-  System.Diagnostics;
+uses System.Diagnostics;
 
 var
   WsaData: TWSAData;
+  StartupError: Integer;
 
-
-procedure SocketCheck(Code: Integer;
-                      const Operation: string);
+function SocketError(const Operation: string; Code: Integer): string;
 begin
-
-  if (Code = SOCKET_ERROR) then
-    raise EHeosSocket.CreateFmt('%s failed (Windows socket error %d)',
-                                 [Operation, WSAGetLastError]);
+  Result := Format('%s (Windows socket error %d).', [Operation, Code]);
 end;
 
-
 function IPv4Valid(const Value: string): Boolean;
-var
-  Parts: TArray<string>;
-  Part: string;
-  I: Integer;
-  N: Integer;
-
+var Part: string; I, N: Integer; Parts: TArray<string>;
 begin
-
   Result := False;
   Parts := Value.Split(['.']);
-
-  if (Length(Parts) <> 4) then
-    Exit;
-
+  if Length(Parts) <> 4 then Exit;
   for Part in Parts do
     begin
-      if (Length(Part) = 0) or (Length(Part) > 3) then
-        Exit;
-
+      if (Length(Part) = 0) or (Length(Part) > 3) then Exit;
       for I := 1 to Length(Part) do
-        if not CharInSet(Part[I],
-                         ['0'..'9']) then
-          Exit;
-
-      if not TryStrToInt(Part,
-                         N) then
-        Exit;
-
-      if (N < 0) or (N > 255) then
-        Exit;
+        if not CharInSet(Part[I], ['0'..'9']) then Exit;
+      if not TryStrToInt(Part, N) or (N < 0) or (N > 255) then Exit;
     end;
-
   Result := True;
 end;
 
-
-function SocketReady(S: TSocket;
-                     Writing: Boolean;
-                     TimeoutMs: Integer): Boolean;
-var
-  Fds: TFDSet;
-  Timeout: TTimeVal;
-  Code: Integer;
-
+function TrySocketReady(S: TSocket; Writing: Boolean; TimeoutMs: Integer;
+  out Ready: Boolean; out ErrorText: string): Boolean;
+var Fds: TFDSet; Timeout: TTimeVal; Code: Integer;
 begin
-
+  Ready := False;
+  ErrorText := '';
   Fds.fd_count := 1;
   Fds.fd_array[0] := S;
+  if TimeoutMs < 0 then TimeoutMs := 0;
   Timeout.tv_sec := TimeoutMs div 1000;
   Timeout.tv_usec := (TimeoutMs mod 1000) * 1000;
-
-  if Writing then
-    Code := select(0,
-                   nil,
-                   @Fds,
-                   nil,
-                   @Timeout)
-  else
-    Code := select(0,
-                   @Fds,
-                   nil,
-                   nil,
-                   @Timeout);
-
-  SocketCheck(Code,
-              'Socket wait');
-  Result := (Code > 0);
+  if Writing then Code := select(0, nil, @Fds, nil, @Timeout)
+  else Code := select(0, @Fds, nil, nil, @Timeout);
+  Result := Code <> SOCKET_ERROR;
+  if not Result then ErrorText := SocketError('Socket wait failed', WSAGetLastError)
+  else Ready := Code > 0;
 end;
 
-
-procedure SetSocketTimeout(S: TSocket;
-                           TimeoutMs: Integer);
+function OpenReceiverSocket(const Host: string; Port: Word; TimeoutMs: Integer;
+  out ConnectedSocket: TSocket; out ErrorText: string): Boolean;
+var S: TSocket; Addr, Peer: TSockAddrIn; Mode: u_long;
+  Code, Error, Len: Integer; HostAnsi: AnsiString;
+  Writable, Failed: TFDSet; Timeout: TTimeVal;
 begin
-
-  SocketCheck(setsockopt(S,
-                         SOL_SOCKET,
-                         SO_SNDTIMEO,
-                         PAnsiChar(@TimeoutMs),
-                         SizeOf(TimeoutMs)),
-              'Set send timeout');
-end;
-
-
-function OpenReceiverSocket(const Host: string;
-                          Port: Word;
-                          TimeoutMs: Integer;
-                          out ConnectedSocket: TSocket;
-                          out ErrorText: string): Boolean;
-var
-  S: TSocket;
-  Address: TSockAddrIn;
-  Peer: TSockAddrIn;
-  Writable: TFDSet;
-  Failed: TFDSet;
-  Timeout: TTimeVal;
-  HostAnsi: AnsiString;
-  Mode: u_long;
-  Code: Integer;
-  Error: Integer;
-  Size: Integer;
-
-begin
-
   Result := False;
-  ErrorText := '';
   ConnectedSocket := INVALID_SOCKET;
-
+  ErrorText := '';
+  if StartupError <> 0 then
+    begin ErrorText := SocketError('Windows sockets unavailable', StartupError); Exit; end;
   if not IPv4Valid(Host) or (Port = 0) or (TimeoutMs <= 0) then
-    begin
-
-      ErrorText := 'Invalid receiver address, port or check timeout.';
-      Exit;
-    end;
-
-  S := socket(AF_INET,
-              SOCK_STREAM,
-              IPPROTO_TCP);
-
-  if (S = INVALID_SOCKET) then
-    begin
-
-      ErrorText := Format('Cannot create receiver check socket (Windows socket error %d).',
-                            [WSAGetLastError]);
-      Exit;
-    end;
-
+    begin ErrorText := 'Invalid receiver address, port or timeout.'; Exit; end;
+  S := socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if S = INVALID_SOCKET then
+    begin ErrorText := SocketError('Cannot create receiver socket', WSAGetLastError); Exit; end;
   try
-
     Mode := 1;
-    if (ioctlsocket(S, FIONBIO, Mode) = SOCKET_ERROR) then
-      begin
-
-        ErrorText := Format('Cannot configure receiver check (Windows socket error %d).',
-                            [WSAGetLastError]);
-        Exit;
-      end;
-
-    FillChar(Address, SizeOf(Address), 0);
+    if ioctlsocket(S, FIONBIO, Mode) = SOCKET_ERROR then
+      begin ErrorText := SocketError('Cannot configure receiver socket', WSAGetLastError); Exit; end;
+    FillChar(Addr, SizeOf(Addr), 0);
     HostAnsi := AnsiString(Host);
-    Address.sin_family := AF_INET;
-    Address.sin_port := htons(Port);
-    Address.sin_addr.S_addr := inet_addr(PAnsiChar(HostAnsi));
-    Code := connect(S, Address, SizeOf(Address));
-
-    if (Code = SOCKET_ERROR) then
+    Addr.sin_family := AF_INET;
+    Addr.sin_port := htons(Port);
+    Addr.sin_addr.S_addr := inet_addr(PAnsiChar(HostAnsi));
+    Code := connect(S, Addr, SizeOf(Addr));
+    if Code = SOCKET_ERROR then
       begin
-
         Error := WSAGetLastError;
-
-        if (Error <> WSAEWOULDBLOCK) then
-          begin
-
-            ErrorText := Format('Connection failed (Windows socket error %d).',
-                                [Error]);
-            Exit;
-          end;
-
+        if Error <> WSAEWOULDBLOCK then
+          begin ErrorText := SocketError('Receiver connection failed', Error); Exit; end;
         FillChar(Writable, SizeOf(Writable), 0);
         Writable.fd_count := 1;
         Writable.fd_array[0] := S;
@@ -319,374 +186,243 @@ begin
         Timeout.tv_sec := TimeoutMs div 1000;
         Timeout.tv_usec := (TimeoutMs mod 1000) * 1000;
         Code := select(0, nil, @Writable, @Failed, @Timeout);
-
-        if (Code = 0) then
-          begin
-
-            ErrorText := 'Receiver control port did not respond before timeout.';
-            Exit;
-          end;
-
-        if (Code = SOCKET_ERROR) then
-          begin
-
-            ErrorText := Format('Receiver check failed (Windows socket error %d).',
-                                [WSAGetLastError]);
-            Exit;
-          end;
-
+        if Code = 0 then
+          begin ErrorText := 'Receiver connection timed out.'; Exit; end;
+        if Code = SOCKET_ERROR then
+          begin ErrorText := SocketError('Receiver connection wait failed', WSAGetLastError); Exit; end;
         Error := 0;
-        Size := SizeOf(Error);
-
-        if (getsockopt(S,
-                       SOL_SOCKET,
-                       SO_ERROR,
-                       PAnsiChar(@Error),
-                       Size) = SOCKET_ERROR) then
+        Len := SizeOf(Error);
+        if getsockopt(S, SOL_SOCKET, SO_ERROR, PAnsiChar(@Error), Len) = SOCKET_ERROR then
           Error := WSAGetLastError;
-
-        if (Error <> 0) then
-          begin
-
-            ErrorText := Format('Receiver control port is unavailable (Windows socket error %d).',
-                                [Error]);
-            Exit;
-          end;
-
+        if Error <> 0 then
+          begin ErrorText := SocketError('Receiver connection failed', Error); Exit; end;
         if (Writable.fd_count = 0) or (Failed.fd_count <> 0) then
-          begin
-
-            ErrorText := 'Receiver control connection was not established.';
-            Exit;
-          end;
+          begin ErrorText := 'Receiver connection was not established.'; Exit; end;
       end;
-
-    Size := SizeOf(Peer);
-    if (getpeername(S,
-                    Peer,
-                    Size) = SOCKET_ERROR) then
-      begin
-
-        ErrorText := Format('Receiver is not connected (Windows socket error %d).',
-                            [WSAGetLastError]);
-        Exit;
-      end;
-
     Mode := 0;
-    if (ioctlsocket(S, FIONBIO, Mode) = SOCKET_ERROR) or
-       (setsockopt(S, SOL_SOCKET, SO_SNDTIMEO, PAnsiChar(@TimeoutMs),
-                   SizeOf(TimeoutMs)) = SOCKET_ERROR) then
-      begin
-        ErrorText := Format('Cannot configure receiver connection (Windows socket error %d).',
-                              [WSAGetLastError]);
-        Exit;
-      end;
+    if ioctlsocket(S, FIONBIO, Mode) = SOCKET_ERROR then
+      begin ErrorText := SocketError('Cannot configure receiver connection', WSAGetLastError); Exit; end;
+    Len := SizeOf(Peer);
+    if getpeername(S, Peer, Len) = SOCKET_ERROR then
+      begin ErrorText := SocketError('Receiver is not connected', WSAGetLastError); Exit; end;
+    if setsockopt(S, SOL_SOCKET, SO_SNDTIMEO, PAnsiChar(@TimeoutMs), SizeOf(TimeoutMs)) = SOCKET_ERROR then
+      begin ErrorText := SocketError('Cannot set receiver timeout', WSAGetLastError); Exit; end;
     ConnectedSocket := S;
     S := INVALID_SOCKET;
     Result := True;
   finally
-
-    if (S <> INVALID_SOCKET) then
-      closesocket(S);
+    if S <> INVALID_SOCKET then closesocket(S);
   end;
 end;
 
-
-constructor THeosConnection.CreateClosed();
+constructor THeosConnection.CreateSocket(ASocket: TSocket);
 begin
-
-  inherited Create();
-  FSocket := INVALID_SOCKET;
+  inherited Create;
+  FSocket := ASocket;
 end;
 
-
-constructor THeosConnection.Create(const Host: string;
-                                    Port: Word;
-                                    TimeoutMs: Integer);
-var
-  ErrorText: string;
-
+constructor THeosConnection.Create(const Host: string; Port: Word; TimeoutMs: Integer);
+var ErrorText: string;
 begin
-
-  inherited Create();
+  inherited Create;
   FSocket := INVALID_SOCKET;
   if not OpenReceiverSocket(Host, Port, TimeoutMs, FSocket, ErrorText) then
     raise EHeosSocket.CreateFmt('%s:%d: %s', [Host, Port, ErrorText]);
 end;
 
-
-class function THeosConnection.TryConnect(const Host: string;
-                                           Port: Word;
-                                           TimeoutMs: Integer;
-                                           out Connection: THeosConnection;
-                                           out ErrorText: string): Boolean;
+class function THeosConnection.TryConnect(const Host: string; Port: Word; TimeoutMs: Integer;
+  out Connection: THeosConnection; out ErrorText: string): Boolean;
+var S: TSocket;
 begin
-
-  Connection := THeosConnection.CreateClosed();
-  Result := OpenReceiverSocket(Host, Port, TimeoutMs, Connection.FSocket, ErrorText);
-  if not Result then
-    begin
-      FreeAndNil(Connection);
-      ErrorText := Format('%s:%d: %s', [Host, Port, ErrorText]);
-    end;
+  Connection := nil;
+  Result := OpenReceiverSocket(Host, Port, TimeoutMs, S, ErrorText);
+  if Result then Connection := THeosConnection.CreateSocket(S)
+  else ErrorText := Format('%s:%d: %s', [Host, Port, ErrorText]);
 end;
 
-
-destructor THeosConnection.Destroy();
+destructor THeosConnection.Destroy;
 begin
-
-  if (FSocket <> INVALID_SOCKET) then
-    closesocket(FSocket);
-
+  if FSocket <> INVALID_SOCKET then closesocket(FSocket);
   inherited;
 end;
 
-
-procedure SendBytes(S: TSocket;
-                    Data: Pointer;
-                    Count: Integer);
-var
-  Sent: Integer;
-  P: PByte;
-
+function TrySendBytes(S: TSocket; Data: Pointer; Count: Integer; out ErrorText: string): Boolean;
+var Sent: Integer; P: PByte;
 begin
-
+  Result := False;
+  ErrorText := '';
+  if (Count < 0) or ((Count > 0) and (Data = nil)) then
+    begin ErrorText := 'Invalid send buffer.'; Exit; end;
   P := Data;
-
-  while (Count > 0) do
+  while Count > 0 do
     begin
-      Sent := Winapi.WinSock.send(S,
-                                  P^,
-                                  Count,
-                                  0);
-
-      SocketCheck(Sent,
-                  'Send');
-
-      if (Sent = 0) then
-        raise EHeosSocket.Create('Connection closed during send');
-
-      Inc(P,
-          Sent);
-
-      Dec(Count,
-          Sent);
+      Sent := WinApi.WinSock.send(S, P^, Count, 0);
+      if Sent = SOCKET_ERROR then
+        begin ErrorText := SocketError('Send failed', WSAGetLastError); Exit; end;
+      if Sent = 0 then
+        begin ErrorText := 'Connection closed during send.'; Exit; end;
+      Inc(P, Sent);
+      Dec(Count, Sent);
     end;
+  Result := True;
 end;
 
-
-procedure SendText(S: TSocket;
-                   const Text: AnsiString);
+function THeosConnection.TrySend(const Text: AnsiString; out ErrorText: string): Boolean;
 begin
-
-  if (Text <> '') then
-    SendBytes(S,
-              PAnsiChar(Text),
-              Length(Text));
+  Result := TrySendBytes(FSocket, PAnsiChar(Text), Length(Text), ErrorText);
 end;
 
-
-procedure THeosConnection.Send(const Text: AnsiString);
+function THeosConnection.TryReadLine(Delimiter: AnsiChar; TimeoutMs: Integer;
+  out Line: string; out ErrorText: string): Boolean;
+var Buffer: array[0..4095] of AnsiChar; Chunk: UTF8String;
+  Timer: TStopwatch; N, P, Remaining: Integer; Ready: Boolean;
 begin
-
-  SendText(FSocket,
-           Text);
-end;
-
-
-function THeosConnection.ReadLine(Delimiter: AnsiChar;
-                                   TimeoutMs: Integer): string;
-var
-  Buffer: array[0..4095] of AnsiChar;
-  Chunk: UTF8String;
-  Timer: TStopwatch;
-  N: Integer;
-  P: Integer;
-  Remaining: Integer;
-
-begin
-
-  Timer := TStopwatch.StartNew();
-
+  Result := False;
+  Line := '';
+  ErrorText := '';
+  Timer := TStopwatch.StartNew;
   while True do
     begin
       P := Pos(UTF8String(Delimiter), FReadBuffer);
-      if (P > 0) then
+      if (P > 65537) or ((P = 0) and (Length(FReadBuffer) > 65536)) then
+        begin ErrorText := 'Receiver reply too long.'; Exit; end;
+      if P > 0 then
         begin
-          if (P > 65537) then
-            raise EHeosSocket.Create('Reply too long');
-
-          Result := string(Copy(FReadBuffer,
-                           1,
-                           P - 1));
-
-          Delete(FReadBuffer,
-                 1,
-                 P);
-          Exit;
+          Line := string(Copy(FReadBuffer, 1, P - 1));
+          Delete(FReadBuffer, 1, P);
+          Exit(True);
         end;
-
-      if (Length(FReadBuffer) > 65536) then
-        raise EHeosSocket.Create('Reply too long');
-
       Remaining := TimeoutMs - Integer(Timer.ElapsedMilliseconds);
-
-      if (Remaining <= 0) then
+      // A normal poll timeout preserves partial TCP input for the next call.
+      if Remaining <= 0 then Exit(True);
+      if Remaining > 50 then Remaining := 50;
+      if not TrySocketReady(FSocket, False, Remaining, Ready, ErrorText) then Exit;
+      if not Ready then Continue;
+      N := recv(FSocket, Buffer, SizeOf(Buffer), 0);
+      if N = SOCKET_ERROR then
+        begin ErrorText := SocketError('Receiver read failed', WSAGetLastError); Exit; end;
+      if N = 0 then
         begin
-
-          // Keep partial replies for the next poll; TCP may split any line.
-          Result := '';
+          if FReadBuffer <> '' then ErrorText := 'Receiver closed connection before completing reply.'
+          else ErrorText := 'Receiver closed connection.';
           Exit;
         end;
-
-      if (Remaining > 50) then
-        Remaining := 50;
-
-      if not SocketReady(FSocket,
-                         False,
-                         Remaining) then
-        Continue;
-
-      N := recv(FSocket,
-                Buffer,
-                SizeOf(Buffer),
-                0);
-
-      SocketCheck(N,
-                   'Read');
-      if (N = 0) then
-        begin
-          if (FReadBuffer <> '') then
-            raise EHeosSocket.Create('Receiver closed connection before completing reply');
-
-          raise EHeosSocket.Create('Receiver closed connection');
-        end;
-
-      SetString(Chunk,
-                PAnsiChar(@Buffer[0]),
-                N);
-
+      SetString(Chunk, PAnsiChar(@Buffer[0]), N);
       FReadBuffer := FReadBuffer + Chunk;
     end;
 end;
 
-
-function ReadHeader(S: TSocket): string;
-var
-  Ch: AnsiChar;
-  Data: AnsiString;
-  Timer: TStopwatch;
-  N: Integer;
-
+function TryReadHeader(S: TSocket; out Header: string; out ErrorText: string): Boolean;
+var Ch: AnsiChar; Data: AnsiString; Timer: TStopwatch; N: Integer; Ready: Boolean;
 begin
-
+  Result := False;
+  Header := '';
+  ErrorText := '';
   Data := '';
-  Timer := TStopwatch.StartNew();
-
-  while (Timer.ElapsedMilliseconds < 3000) do
+  Timer := TStopwatch.StartNew;
+  while Timer.ElapsedMilliseconds < 3000 do
     begin
-      if not SocketReady(S,
-                         False,
-                         100) then
-        Continue;
-
-      N := recv(S,
-                Ch,
-                1,
-                0);
-
-      SocketCheck(N,
-                  'Read HTTP header');
-
-      if (N = 0) then
-        raise EHeosSocket.Create('HTTP client closed');
-
+      if not TrySocketReady(S, False, 100, Ready, ErrorText) then Exit;
+      if not Ready then Continue;
+      N := recv(S, Ch, 1, 0);
+      if N = SOCKET_ERROR then
+        begin ErrorText := SocketError('HTTP header read failed', WSAGetLastError); Exit; end;
+      if N = 0 then
+        begin ErrorText := 'HTTP client closed.'; Exit; end;
       Data := Data + Ch;
-
-      if (Pos(AnsiString(#13#10#13#10),
-                         Data) > 0) then
-        Exit(string(Data));
-
-      if (Length(Data) > 16384) then
-        raise EHeosSocket.Create('HTTP header too long');
+      if Pos(AnsiString(#13#10#13#10), Data) > 0 then
+        begin Header := string(Data); Exit(True); end;
+      if Length(Data) > 16384 then
+        begin ErrorText := 'HTTP header too long.'; Exit; end;
     end;
-
-  raise EHeosSocket.Create('HTTP header timeout');
+  ErrorText := 'HTTP header timeout.';
 end;
 
-
-function ProbeReceiver(const Host: string;
-                          Port: Word;
-                          TimeoutMs: Integer;
-                          out ErrorText: string): Boolean;
-var
-  Socket: TSocket;
-
+function ProbeReceiver(const Host: string; Port: Word; TimeoutMs: Integer; out ErrorText: string): Boolean;
+var Connection: THeosConnection;
 begin
-
-  Result := OpenReceiverSocket(Host, Port, TimeoutMs, Socket, ErrorText);
-  if Result then
-    closesocket(Socket);
+  Result := THeosConnection.TryConnect(Host, Port, TimeoutMs, Connection, ErrorText);
+  Connection.Free;
 end;
 
-
-function LocalAddressFor(const Receiver: string): string;
-var
-  S: TSocket; Addr,
-  Local: TSockAddrIn;
-  Len: Integer;
-  Host: AnsiString;
-
+function TryLocalAddressFor(const Receiver: string; out Address: string; out ErrorText: string): Boolean;
+var S: TSocket; Addr, Local: TSockAddrIn; Len: Integer; Host: AnsiString;
 begin
-
+  Result := False;
+  Address := '';
+  ErrorText := '';
   if not IPv4Valid(Receiver) then
-    raise EHeosSocket.Create('Invalid receiver IP');
-
-  S := socket(AF_INET,
-              SOCK_DGRAM,
-              IPPROTO_UDP);
-
-  if (S = INVALID_SOCKET) then
-    SocketCheck(SOCKET_ERROR,
-                'Create route socket');
-
+    begin ErrorText := 'Invalid receiver IPv4 address.'; Exit; end;
+  S := socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if S = INVALID_SOCKET then
+    begin ErrorText := SocketError('Cannot create route socket', WSAGetLastError); Exit; end;
   try
-    FillChar(Addr,
-             SizeOf(Addr),
-             0);
-
+    FillChar(Addr, SizeOf(Addr), 0);
     Host := AnsiString(Receiver);
     Addr.sin_family := AF_INET;
     Addr.sin_port := htons(1255);
     Addr.sin_addr.S_addr := inet_addr(PAnsiChar(Host));
-
-    // UDP connect selects the route; no packet is sent.
-    SocketCheck(connect(S,
-                        Addr,
-                        SizeOf(Addr)),
-                'Find route to receiver');
-
+    if connect(S, Addr, SizeOf(Addr)) = SOCKET_ERROR then
+      begin ErrorText := SocketError('Cannot find receiver route', WSAGetLastError); Exit; end;
     Len := SizeOf(Local);
-
-    SocketCheck(getsockname(S,
-                            Local,
-                            Len),
-                'Find local address');
-
-    Result := string(AnsiString(inet_ntoa(Local.sin_addr)));
-
+    if getsockname(S, Local, Len) = SOCKET_ERROR then
+      begin ErrorText := SocketError('Cannot find local address', WSAGetLastError); Exit; end;
+    Address := string(AnsiString(inet_ntoa(Local.sin_addr)));
+    Result := IPv4Valid(Address);
+    if not Result then ErrorText := 'No valid local IPv4 address for receiver route.';
   finally
     closesocket(S);
   end;
 end;
 
+// Legacy wrappers remain available for source compatibility. Expected live
+// failures are handled through the result-returning functions above.
+procedure SocketCheck(Code: Integer; const Operation: string);
+begin
+  if Code = SOCKET_ERROR then raise EHeosSocket.Create(SocketError(Operation, WSAGetLastError));
+end;
+function SocketReady(S: TSocket; Writing: Boolean; TimeoutMs: Integer): Boolean;
+var ErrorText: string;
+begin
+  if not TrySocketReady(S, Writing, TimeoutMs, Result, ErrorText) then Result := False;
+end;
+procedure SetSocketTimeout(S: TSocket; TimeoutMs: Integer);
+begin
+  SocketCheck(setsockopt(S, SOL_SOCKET, SO_SNDTIMEO, PAnsiChar(@TimeoutMs), SizeOf(TimeoutMs)), 'Set send timeout');
+end;
+procedure SendBytes(S: TSocket; Data: Pointer; Count: Integer);
+var ErrorText: string;
+begin
+  if not TrySendBytes(S, Data, Count, ErrorText) then raise EHeosSocket.Create(ErrorText);
+end;
+procedure SendText(S: TSocket; const Text: AnsiString);
+begin
+  if Text <> '' then SendBytes(S, PAnsiChar(Text), Length(Text));
+end;
+procedure THeosConnection.Send(const Text: AnsiString);
+var ErrorText: string;
+begin
+  if not TrySend(Text, ErrorText) then raise EHeosSocket.Create(ErrorText);
+end;
+function THeosConnection.ReadLine(Delimiter: AnsiChar; TimeoutMs: Integer): string;
+var ErrorText: string;
+begin
+  if not TryReadLine(Delimiter, TimeoutMs, Result, ErrorText) then raise EHeosSocket.Create(ErrorText);
+end;
+function ReadHeader(S: TSocket): string;
+var ErrorText: string;
+begin
+  if not TryReadHeader(S, Result, ErrorText) then raise EHeosSocket.Create(ErrorText);
+end;
+function LocalAddressFor(const Receiver: string): string;
+var ErrorText: string;
+begin
+  if not TryLocalAddressFor(Receiver, Result, ErrorText) then raise EHeosSocket.Create(ErrorText);
+end;
+
 initialization
-
-  if (WSAStartup($0202,
-                 WsaData) <> 0) then
-    raise EHeosSocket.Create('Windows sockets could not initialize');
-
+  // Leave initialization failures available as normal connection results.
+  StartupError := WSAStartup($0202, WsaData);
 finalization
-  WSACleanup();
-
+  if StartupError = 0 then WSACleanup;
 end.

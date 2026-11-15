@@ -12,7 +12,7 @@ Quick Select commands are documented for HEOS AVR/HEOS Bar products and should n
 `GetServiceOptions` is retained for compatibility although the specification marks it obsolete.
 
 The AVR API implements the receiver functions used by HEOS Remote. It provides typed commands and replies plus a raw-command extension, rather than claiming exhaustive coverage of every AVR model.
-The APIs have been built and tested with Delphi XE7 and higher, for Win32 and Win64; the repository's supported Delphi and Windows versions are listed in the main README.
+The APIs have been built and tested with Delphi XE7 for Win32 and Win64; the repository's supported Delphi and Windows versions are listed in the main README.
 
 ## Architecture and protocol boundaries
 
@@ -26,8 +26,7 @@ The APIs have been built and tested with Delphi XE7 and higher, for Win32 and Wi
 HEOS and AVR control are independent clients. Each has a worker thread and a serialized command queue.
 Application code submits commands without waiting for network responses. A VCL timer calls `Dispatch` to deliver callbacks on the UI thread; console code can consume messages through `TakeMessage`.
 
-The reusable APIs require no MfPack or Indy.  
-The complete HEOS Remote application uses MfPack for its media functionality and includes its custom controls and DFM forms.
+The reusable APIs require neither MfPack nor Indy. The complete HEOS Remote application uses MfPack for its media functionality and includes its custom controls and DFM forms.
 Its original transport adapters are preserved in the sample; the standalone console examples demonstrate the new APIs directly.
 
 The library sends control commands. Hosting and streaming audio are responsibilities of the full application sample, not the core CLI API.
@@ -209,14 +208,6 @@ Account credentials are supplied by the caller; the library does not save them o
 The default port is 1255 and the constructor requires an IPv4 address.
 A known receiver address works directly. SSDP device discovery is separate and is not included in this CLI library.
 
-Expected initial HEOS connect failures are returned as `hmError` messages with
-the receiver endpoint and `DeliveryUnknown=False`; they do not raise a socket
-exception inside the asynchronous worker. `THeosConnection.TryConnect` returns
-False, a nil connection and error text on failure. The direct socket constructor
-still raises `EHeosSocket`, preserving its existing contract. This change covers
-connection establishment; protocol/read/send failures remain reported through
-the API's normal error handling.
-
 The default connection timeout is 2.5 seconds; the default request timeout is 15 seconds. `TimeoutMs` can be increased up to 300,000 ms for slow services.
 Idle connections send a heartbeat after 20 seconds without traffic.
 JSON framing supports compact and prettified responses, multiple frames per packet, split UTF-8 characters and individual frames up to 16 MB.
@@ -311,43 +302,4 @@ Original FactoryX source headers and notices are preserved. See `LICENSE` and th
 - [Denon AVR/AVC control protocol](https://downloads.denon.com/documentmaster/us/avr987serialprotocol.pdf), documenting common framing and level encoding. This older document is not an exhaustive reference for modern AVR models.
 - [HEOS command catalog](COMMANDS.md) and [AVR API documentation](AVR/README.md) for the implemented Delphi interfaces and model-dependent behavior.
 
-## AVR capability discovery and control availability
-
-The reusable `AVR/Source/Avr.Capabilities.pas` unit separates static device support
-from live operating state. Its background HTTP worker reads `Deviceinfo.xml`, maps
-explicit support flags to eight existing console features, and publishes results
-only when the owner polls. The VCL sample first loads an INI snapshot keyed by the
-verified SSDP identity, then refreshes after address verification. IP addresses are
-connection destinations rather than cache identities.
-
-Failures leave cached support intact; missing flags remain unknown. Native HTTP
-timeouts, a byte limit, an overall read deadline and retired-request handling bound
-work and prevent old responses overwriting another selected device. COM initialization
-surrounds a separate parsing scope, ensuring XML interface temporaries are released
-before the worker apartment is uninitialized. The current mapping distinguishes
-Main and Zone 2 power, Main volume/mute, FL/FR balance, global tone, bass and treble.
-
-MainForm applies support and current availability in one method, supplies reasons
-through control hints, and filters unsupported requests. The existing tone rules
-for power, Direct/Pure Direct and Dynamic EQ still apply. Status collection does not
-wait for commands removed by capability filtering, including unavailable Zone 2.
-UI controls remain declared in the DFM.
-
-The read-only Delphi probe measured about 108 ms to retrieve and parse all eight
-mapped features on the tested AVR-X2700H. This is a single local observation, not a
-guaranteed startup duration. The test suite also uses local HTTP/TCP simulators for
-parser errors, schema/cache identity, DHCP changes, stale responses, delayed replies,
-unsupported features, mode restrictions and filtered single-zone status completion.
-See `AVR/README.md` for usage.
-  
-  
-Project: FactoryX - HEOS CLI  
-  
-Project location:    
-https://github.com/FactoryXCode/FactoryX-HEOS-CLI  
-  
-First release date: 13/08/2026  
-Final release date: 30/10/2026  
-  
-Copyright © FactoryX. All rights reserved.
-
+**Copyright (c) FactoryX. All rights reserved.**
