@@ -1,6 +1,5 @@
-# Denon Remote - Delphi VCL
+# Denon Remote - Delphi XE7 VCL
 
-## Test environment
 Receiver controls, music-file playback and live Windows sound for the
 Denon AVR-X2700H DAB. No Indy, BASS, FFmpeg or extra audio DLLs.
 
@@ -219,4 +218,3 @@ References:
 - Windows loopback: https://learn.microsoft.com/en-us/windows/win32/coreaudio/loopback-recording
 - Windows AAC encoder: https://learn.microsoft.com/en-us/windows/win32/medfound/aac-encoder
 
-**Copyright (c) FactoryX. All rights reserved.**

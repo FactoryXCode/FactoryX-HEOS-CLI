@@ -10,9 +10,9 @@ Native sockets in the sample still serve audio, probe availability and perform S
 
 ## Open and build
 
-Requires Delphi XE7 or higher, Windows, and [MfPack](https://github.com/FactoryXCode/MfPack). Install the included `Controls/HEOSControls.dproj` in the Win32 IDE before opening the form designer, unless these TDn components are already installed. Set the `MfPackRoot` environment variable to your MfPack folder before starting Delphi, then open `HEOSRemote.dproj`.
+Requires Delphi XE7 or newer, Windows, and [MfPack](https://github.com/FactoryXCode/MfPack). Install the included `Controls/HEOSControls.dproj` in the Win32 IDE before opening the form designer, unless these TDn components are already installed. Set the `MfPackRoot` environment variable to your MfPack folder before starting Delphi, then open `HEOSRemote.dproj`.
 
-```powershell (not for community versions!)
+```powershell
 .\Build.ps1 -MfPackRoot 'D:\PROJECTS\MfPack' -Platform Win32
 .\Build.ps1 -MfPackRoot 'D:\PROJECTS\MfPack' -Platform Win64
 ```
@@ -32,5 +32,3 @@ python Tests/RunSimulator.py --exe ../../Build/Win32/HEOSRemoteApi/RemoteApiTest
 ```
 
 Tests cover playback, player selection, parameter encoding, progress, state replies, receiver settings, capped volume and stopping a request after a rejected command.
-
-**Copyright (c) FactoryX. All rights reserved.**
