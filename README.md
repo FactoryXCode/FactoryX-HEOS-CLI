@@ -40,7 +40,7 @@ See the [API application build instructions](Examples/HEOSRemoteApi/README.md).
 
 ## Documentation
 
-- [Technical paper](TECHNICAL-PAPER.md) — architecture, API examples, protocols, build instructions and validation.
+- [Technical paper](TECHNICAL-PAPER.md) — architecture, API examples, protocols and build instructions.
 - [HEOS command catalog](COMMANDS.md).
 - [AVR API documentation](AVR/README.md).
 - [License](LICENSE) and the FactoryX notices in each source file.
